@@ -1,0 +1,10 @@
+Model,Class,Precision,Recall,F1,Support
+Lexicon Baseline,Negative,1.0,1.0,1.0,2
+Lexicon Baseline,Neutral,0.6667,1.0,0.8,2
+Lexicon Baseline,Positive,1.0,0.8333,0.9091,6
+TF-IDF + Logistic Regression,Negative,0.25,0.5,0.3333,2
+TF-IDF + Logistic Regression,Neutral,0.0,0.0,0.0,2
+TF-IDF + Logistic Regression,Positive,0.6667,0.6667,0.6667,6
+TF-IDF + Linear SVM,Negative,0.25,0.5,0.3333,2
+TF-IDF + Linear SVM,Neutral,0.0,0.0,0.0,2
+TF-IDF + Linear SVM,Positive,0.6667,0.6667,0.6667,6

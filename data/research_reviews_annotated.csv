@@ -1,0 +1,62 @@
+review_id,review_text,aspect_term,opinion_term,sentiment,aspect_language,opinion_language,pair_type,product_category,aspect_start_char,aspect_end_char,opinion_start_char,opinion_end_char,annotated_pair_type,derived_pair_type,pair_type_disagreement
+1,"Camera quality achhi hai, but battery backup bahut kharab hai.",Camera quality,achhi hai,Positive,English,Hindi,cross-lingual,Smartphones,0,14,15,24,cross-lingual,cross-lingual,False
+1,"Camera quality achhi hai, but battery backup bahut kharab hai.",battery backup,bahut kharab hai,Negative,English,Hindi,cross-lingual,Smartphones,30,44,45,61,cross-lingual,cross-lingual,False
+2,Phone ka display bohot vibrant hai aur touch response smooth hai.,display,bohot vibrant hai,Positive,English,Hindi,cross-lingual,Smartphones,9,16,17,34,cross-lingual,cross-lingual,False
+2,Phone ka display bohot vibrant hai aur touch response smooth hai.,touch response,smooth hai,Positive,English,Mixed,Uncertain,Smartphones,39,53,54,64,cross-lingual,Uncertain,True
+3,Sound quality is crystal clear and bass is really powerful.,Sound quality,crystal clear,Positive,English,English,same-language,Audio,0,13,17,30,same-language,same-language,False
+3,Sound quality is crystal clear and bass is really powerful.,bass,really powerful,Positive,English,English,same-language,Audio,35,39,43,58,same-language,same-language,False
+4,Is headphone ka build quality bekaar hai par sound kaafi accha hai.,build quality,bekaar hai,Negative,English,Hindi,cross-lingual,Audio,16,29,30,40,cross-lingual,cross-lingual,False
+4,Is headphone ka build quality bekaar hai par sound kaafi accha hai.,sound,kaafi accha hai,Positive,English,Hindi,cross-lingual,Audio,45,50,51,66,cross-lingual,cross-lingual,False
+5,"Screen brightness dhoop me bilkul kam padti hai, unusable outdoors.",Screen brightness,bilkul kam padti hai,Negative,English,Hindi,cross-lingual,Smartphones,0,17,27,47,cross-lingual,cross-lingual,False
+6,Design bahut premium lagta hai lekin processor thoda slow hai.,Design,bahut premium lagta hai,Positive,English,Hindi,cross-lingual,Laptops,0,6,7,30,cross-lingual,cross-lingual,False
+6,Design bahut premium lagta hai lekin processor thoda slow hai.,processor,thoda slow hai,Negative,English,Hindi,cross-lingual,Laptops,37,46,47,61,cross-lingual,cross-lingual,False
+7,Shoes ka sole kaafi comfortable hai aur fit ekdum perfect mila.,sole,kaafi comfortable hai,Positive,English,Mixed,Uncertain,Footwear,9,13,14,35,cross-lingual,Uncertain,True
+7,Shoes ka sole kaafi comfortable hai aur fit ekdum perfect mila.,fit,ekdum perfect mila,Positive,English,Hindi,cross-lingual,Footwear,40,43,44,62,cross-lingual,cross-lingual,False
+8,"Is price range me performance lajawab hai, value for money deal!",performance,lajawab hai,Positive,English,Hindi,cross-lingual,Electronics,18,29,30,41,cross-lingual,cross-lingual,False
+8,"Is price range me performance lajawab hai, value for money deal!",deal,value for money,Positive,English,English,same-language,Electronics,59,63,43,58,same-language,same-language,False
+9,Fabric soft nahi hai aur stitching bhi kharab nikli.,Fabric,soft nahi hai,Negative,English,Hindi,cross-lingual,Clothing,0,6,7,20,cross-lingual,cross-lingual,False
+9,Fabric soft nahi hai aur stitching bhi kharab nikli.,stitching,kharab nikli,Negative,English,Hindi,cross-lingual,Clothing,25,34,39,51,cross-lingual,cross-lingual,False
+10,Noise cancellation feature works perfectly in crowded areas.,Noise cancellation feature,works perfectly,Positive,English,English,same-language,Audio,0,26,27,42,same-language,same-language,False
+11,Delivery time bohot fast tha but customer support bilkul useless nikla.,Delivery time,bohot fast tha,Positive,English,Hindi,cross-lingual,Customer Service,0,13,14,28,cross-lingual,cross-lingual,False
+11,Delivery time bohot fast tha but customer support bilkul useless nikla.,customer support,bilkul useless nikla,Negative,English,Hindi,cross-lingual,Customer Service,33,49,50,70,cross-lingual,cross-lingual,False
+12,"Laptop heating issue bohot zyada hai, fans bohot noisy hain.",heating issue,bohot zyada hai,Negative,English,Hindi,cross-lingual,Laptops,7,20,21,36,cross-lingual,cross-lingual,False
+12,"Laptop heating issue bohot zyada hai, fans bohot noisy hain.",fans,bohot noisy hain,Negative,English,Hindi,cross-lingual,Laptops,38,42,43,59,cross-lingual,cross-lingual,False
+13,"Color bilkul accurate nahi hai, photo me bright lag raha tha.",Color,bilkul accurate nahi hai,Negative,English,Hindi,cross-lingual,Clothing,0,5,6,30,cross-lingual,cross-lingual,False
+14,Product ka weight kaafi light hai and portability is amazing.,weight,kaafi light hai,Positive,English,Hindi,cross-lingual,Electronics,11,17,18,33,cross-lingual,cross-lingual,False
+14,Product ka weight kaafi light hai and portability is amazing.,portability,is amazing,Positive,English,English,same-language,Electronics,38,49,50,60,same-language,same-language,False
+15,Watch ka strap quality ordinary hai aur battery backup average hai.,strap quality,ordinary hai,Neutral,English,Mixed,Uncertain,Wearables,9,22,23,35,same-language,Uncertain,True
+15,Watch ka strap quality ordinary hai aur battery backup average hai.,battery backup,average hai,Neutral,English,Mixed,Uncertain,Wearables,40,54,55,66,same-language,Uncertain,True
+16,Speaker ki aawaz phat rahi hai high volume par.,aawaz,phat rahi hai,Negative,Hindi,Hindi,same-language,Audio,11,16,17,30,same-language,same-language,False
+17,"Price ke hisab se features theek thaak hain, not bad.",features,theek thaak hain,Neutral,English,Hindi,cross-lingual,Electronics,18,26,27,43,cross-lingual,cross-lingual,False
+18,Keyboard switches are responsive and key travel feel great.,Keyboard switches,are responsive,Positive,English,English,same-language,Laptops,0,17,18,32,same-language,same-language,False
+18,Keyboard switches are responsive and key travel feel great.,key travel,feel great,Positive,English,English,same-language,Laptops,37,47,48,58,same-language,same-language,False
+19,"Mic clarity bahut ghatiya hai, online classes ke liye mat lo.",Mic clarity,bahut ghatiya hai,Negative,English,Hindi,cross-lingual,Audio,0,11,12,29,cross-lingual,cross-lingual,False
+20,"Size thoda chhota hai standard fit se, order one size up.",Size,thoda chhota hai,Neutral,English,Hindi,cross-lingual,Clothing,0,4,5,21,cross-lingual,cross-lingual,False
+21,Screen resolution bohot crisp hai aur colors vibrant lagte hain.,Screen resolution,bohot crisp hai,Positive,English,Mixed,Uncertain,Smartphones,0,17,18,33,cross-lingual,Uncertain,True
+21,Screen resolution bohot crisp hai aur colors vibrant lagte hain.,colors,vibrant lagte hain,Positive,English,Mixed,Uncertain,Smartphones,38,44,45,63,cross-lingual,Uncertain,True
+22,Charger heating problem de raha hai within ten minutes.,Charger,heating problem de raha hai,Negative,English,Hindi,cross-lingual,Accessories,0,7,8,35,cross-lingual,cross-lingual,False
+23,Software updates are timely and interface is neat.,Software updates,are timely,Positive,English,English,same-language,Smartphones,0,16,17,27,same-language,same-language,False
+23,Software updates are timely and interface is neat.,interface,is neat,Positive,English,English,same-language,Smartphones,32,41,42,49,same-language,same-language,False
+24,Is bag ka material durable lagta hai par chain ki quality weak hai.,material,durable lagta hai,Positive,English,Hindi,cross-lingual,Accessories,10,18,19,36,cross-lingual,cross-lingual,False
+24,Is bag ka material durable lagta hai par chain ki quality weak hai.,chain ki quality,weak hai,Negative,Mixed,Mixed,Uncertain,Accessories,41,57,58,66,same-language,Uncertain,True
+25,"Earbuds ka fit kaafi loose hai, running karte gir jaate hain.",fit,kaafi loose hai,Negative,English,Hindi,cross-lingual,Audio,11,14,15,30,cross-lingual,cross-lingual,False
+26,Overall look attractive hai and finish top notch hai.,look,attractive hai,Positive,English,Mixed,Uncertain,Footwear,8,12,13,27,same-language,Uncertain,True
+26,Overall look attractive hai and finish top notch hai.,finish,top notch hai,Positive,English,Mixed,Uncertain,Footwear,32,38,39,52,same-language,Uncertain,True
+27,Call quality bohot clear aati hai bina kisi static ke.,Call quality,bohot clear aati hai,Positive,English,Hindi,cross-lingual,Smartphones,0,12,13,33,cross-lingual,cross-lingual,False
+28,Camera zoom bilkul blur karta hai photos ko.,Camera zoom,bilkul blur karta hai,Negative,English,Hindi,cross-lingual,Smartphones,0,11,12,33,cross-lingual,cross-lingual,False
+29,"Cooling system bilkul kaam nahi karta, heavy gaming par phone garam hota hai.",Cooling system,bilkul kaam nahi karta,Negative,English,Hindi,cross-lingual,Smartphones,0,14,15,37,cross-lingual,cross-lingual,False
+30,Packaging safe thi aur delivery on schedule hui.,Packaging,safe thi,Positive,English,Mixed,Uncertain,Customer Service,0,9,10,18,cross-lingual,Uncertain,True
+30,Packaging safe thi aur delivery on schedule hui.,delivery,on schedule hui,Positive,English,Mixed,Uncertain,Customer Service,23,31,32,47,same-language,Uncertain,True
+31,Buttons are stiff and feel cheap to press.,Buttons,are stiff and feel cheap,Negative,English,English,same-language,Electronics,0,7,8,32,same-language,same-language,False
+32,Keemat ke hisab se cheez bahut badiya hai.,cheez,bahut badiya hai,Positive,Hindi,Hindi,same-language,Electronics,19,24,25,41,same-language,same-language,False
+33,Fingerprint sensor is fast but face unlock thoda lag karta hai.,Fingerprint sensor,is fast,Positive,English,English,same-language,Smartphones,0,18,19,26,same-language,same-language,False
+33,Fingerprint sensor is fast but face unlock thoda lag karta hai.,face unlock,thoda lag karta hai,Negative,English,Hindi,cross-lingual,Smartphones,31,42,43,62,cross-lingual,cross-lingual,False
+34,App connectivity disconnect hoti rehti hai bar bar.,App connectivity,disconnect hoti rehti hai,Negative,English,Hindi,cross-lingual,Wearables,0,16,17,42,cross-lingual,cross-lingual,False
+35,"Grip bahut acchi hai floor par, slip hone ka risk nahi.",Grip,bahut acchi hai,Positive,English,Hindi,cross-lingual,Footwear,0,4,5,20,cross-lingual,cross-lingual,False
+36,"Water resistance test pass ho gaya, no damage.",Water resistance,test pass ho gaya,Positive,English,Hindi,cross-lingual,Wearables,0,16,17,34,cross-lingual,cross-lingual,False
+37,Cushioning is soft but arch support bilkul bekaar hai.,Cushioning,is soft,Positive,English,English,same-language,Footwear,0,10,11,18,same-language,same-language,False
+37,Cushioning is soft but arch support bilkul bekaar hai.,arch support,bilkul bekaar hai,Negative,English,Hindi,cross-lingual,Footwear,23,35,36,53,cross-lingual,cross-lingual,False
+38,Display refresh rate smooth lagta hai scrolling me.,Display refresh rate,smooth lagta hai,Positive,English,Hindi,cross-lingual,Smartphones,0,20,21,37,cross-lingual,cross-lingual,False
+39,Setup process was super simple and manual clear tha.,Setup process,was super simple,Positive,English,English,same-language,Electronics,0,13,14,30,same-language,same-language,False
+39,Setup process was super simple and manual clear tha.,manual,clear tha,Positive,English,Hindi,cross-lingual,Electronics,35,41,42,51,cross-lingual,cross-lingual,False
+40,Audio latency during gaming is noticeable and annoying.,Audio latency,noticeable and annoying,Negative,English,English,same-language,Audio,0,13,31,54,same-language,same-language,False

@@ -515,67 +515,63 @@ elif selected_page == "Page 4: Model Comparison":
             "To uphold scientific integrity, metrics are shown only when computed; uncomputed models display **Not Available**."
         )
 
-        # Baseline evaluation data
-        models_data = []
+        # Check for executed experiment results in results/
+        baseline_file = "results/baseline_metrics.csv"
+        gap_file = "results/alignment_gap_results.csv"
 
-        # 1. Lexicon Baseline evaluation
-        lex_clf = LexiconSentimentClassifier()
-        lex_preds = [lex_clf.predict(row["review_text"], row["opinion_term"], row["aspect_term"]).predicted_sentiment for _, row in df.iterrows()]
-        df_lex = df.copy()
-        df_lex["pred"] = lex_preds
-        m_lex = compute_sentiment_metrics(df_lex["sentiment"].tolist(), lex_preds, compute_ci=False)
-        gap_lex = compute_cross_lingual_gap(df_lex, y_true_col="sentiment", y_pred_col="pred")
+        if os.path.exists(baseline_file) and os.path.exists(gap_file):
+            df_base = pd.read_csv(baseline_file)
+            df_gap = pd.read_csv(gap_file)
+            merged_results = pd.merge(df_base, df_gap, on="Model", how="outer")
 
-        models_data.append({
-            "Model": "Lexicon Baseline",
-            "Category": "Rule/Lexicon",
-            "Accuracy": m_lex.accuracy,
-            "Macro-F1": m_lex.macro_f1,
-            "Same-Lang F1": gap_lex.same_lang_f1,
-            "Cross-Lingual F1": gap_lex.cross_lang_f1,
-            "Alignment Gap (pp)": gap_lex.alignment_gap_percentage_points,
-            "Status": "Evaluated",
-        })
+            # Check full model roster
+            full_roster = [
+                "Lexicon Baseline",
+                "TF-IDF + Logistic Regression",
+                "TF-IDF + Linear SVM",
+                "mBERT",
+                "XLM-RoBERTa",
+                "MuRIL",
+            ]
 
-        # Add models from session state if trained
-        for m_name in ["TF-IDF + Logistic Regression", "TF-IDF + Linear SVM", "mBERT", "XLM-RoBERTa", "MuRIL"]:
-            if m_name in st.session_state["models"]:
-                m_obj = st.session_state["models"][m_name]
-                preds, _ = m_obj.predict_batch(df)
-                df_eval = df.copy()
-                df_eval["pred"] = preds
-                m_res = compute_sentiment_metrics(df_eval["sentiment"].tolist(), preds, compute_ci=False)
-                gap_res = compute_cross_lingual_gap(df_eval, y_true_col="sentiment", y_pred_col="pred")
+            display_rows = []
+            for m in full_roster:
+                match = merged_results[merged_results["Model"] == m]
+                if not match.empty:
+                    row = match.iloc[0]
+                    cat = "Rule/Lexicon" if "Lexicon" in m else "Classical ML" if "TF-IDF" in m else "Multilingual Transformer"
+                    display_rows.append({
+                        "Model": m,
+                        "Architecture": cat,
+                        "Accuracy": round(float(row["Accuracy"]), 4) if pd.notna(row["Accuracy"]) else None,
+                        "Macro-F1": round(float(row["Macro_F1"]), 4) if pd.notna(row["Macro_F1"]) else None,
+                        "Same-Language F1": round(float(row["Same_Language_F1"]), 4) if pd.notna(row["Same_Language_F1"]) else None,
+                        "Cross-Lingual F1": round(float(row["Cross_Lingual_F1"]), 4) if pd.notna(row["Cross_Lingual_F1"]) else None,
+                        "Alignment Gap (pp)": round(float(row["Alignment_Gap_pp"]), 2) if pd.notna(row["Alignment_Gap_pp"]) else None,
+                        "Status": "Evaluated on Held-Out Split",
+                    })
+                else:
+                    cat = "Multilingual Transformer" if m in ["mBERT", "XLM-RoBERTa", "MuRIL"] else "Classical ML"
+                    display_rows.append({
+                        "Model": m,
+                        "Architecture": cat,
+                        "Accuracy": None,
+                        "Macro-F1": None,
+                        "Same-Language F1": None,
+                        "Cross-Lingual F1": None,
+                        "Alignment Gap (pp)": None,
+                        "Status": "Not evaluated",
+                    })
 
-                models_data.append({
-                    "Model": m_name,
-                    "Category": "Classical ML" if "TF-IDF" in m_name else "Transformer",
-                    "Accuracy": m_res.accuracy,
-                    "Macro-F1": m_res.macro_f1,
-                    "Same-Lang F1": gap_res.same_lang_f1,
-                    "Cross-Lingual F1": gap_res.cross_lang_f1,
-                    "Alignment Gap (pp)": gap_res.alignment_gap_percentage_points,
-                    "Status": "Evaluated",
-                })
-            else:
-                models_data.append({
-                    "Model": m_name,
-                    "Category": "Classical ML" if "TF-IDF" in m_name else "Transformer",
-                    "Accuracy": None,
-                    "Macro-F1": None,
-                    "Same-Lang F1": None,
-                    "Cross-Lingual F1": None,
-                    "Alignment Gap (pp)": None,
-                    "Status": "Not Trained (Visit Page 7 to Train)",
-                })
+            comp_df = pd.DataFrame(display_rows)
+            st.dataframe(comp_df, use_container_width=True)
 
-        comp_df = pd.DataFrame(models_data)
-        st.dataframe(comp_df, use_container_width=True)
-
-        evaluated_df = comp_df[comp_df["Status"] == "Evaluated"]
-        if not evaluated_df.empty:
-            st.plotly_chart(plot_model_comparison(evaluated_df), use_container_width=True)
-            st.plotly_chart(plot_same_vs_cross_f1(evaluated_df), use_container_width=True)
+            evaluated_df = comp_df[comp_df["Status"] == "Evaluated on Held-Out Split"]
+            if not evaluated_df.empty:
+                st.plotly_chart(plot_model_comparison(evaluated_df), use_container_width=True)
+                st.plotly_chart(plot_same_vs_cross_f1(evaluated_df), use_container_width=True)
+        else:
+            st.info("No saved experiment results found in `results/`. Run experiments on Page 7 or execute `python3 -m src.run_experiments`.")
 
 
 # ==============================================================================
@@ -844,13 +840,33 @@ elif selected_page == "Page 7: Experiments and Results":
             # Error Analysis for this test run
             test_df_eval = splits.test_df.copy()
             test_df_eval["predicted_sentiment"] = test_preds
-            err_records, err_df, err_stats = run_error_analysis(test_df_eval)
+            err_records, err_df, err_stats = run_error_analysis(test_df_eval, model_name=model_type)
 
             st.markdown("### ⚠️ Diagnosed Prediction Errors on Test Partition")
-            st.write(f"Total Errors: **{err_stats['total_errors']}** (Error Rate: **{err_stats['overall_error_rate']}%**)")
+            st.write(f"Total Errors: **{err_stats['total_errors']}** (Error Rate: **{err_stats['overall_error_rate_pct']}%**)")
             if not err_df.empty:
                 st.dataframe(err_df, use_container_width=True)
                 st.plotly_chart(plot_error_categories(err_stats["category_counts"]), use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### 📁 Saved Research Experiment Runs & Configurations")
+        from src.run_experiments import run_experiment_suite
+
+        if st.button("⚡ Run Full Automated Experiment Suite (All Baselines & Save Artifacts)", use_container_width=True):
+            with st.spinner("Executing full baseline suite, gap analysis, and normalization benchmarks..."):
+                suite_res = run_experiment_suite(dataset_path=st.session_state["dataset_name"] if os.path.exists(st.session_state["dataset_name"]) else "data/research_reviews_annotated.csv", random_seed=int(random_seed))
+                st.success("Full experiment suite executed successfully! Artifacts written to `results/`.")
+                st.rerun()
+
+        cfg_dir = "results/experiment_configurations"
+        if os.path.exists(cfg_dir):
+            cfg_files = sorted([f for f in os.listdir(cfg_dir) if f.endswith(".json")], reverse=True)
+            if cfg_files:
+                selected_cfg = st.selectbox("Inspect Saved Experiment Configuration:", cfg_files)
+                with open(os.path.join(cfg_dir, selected_cfg), "r") as f:
+                    cfg_data = json.load(f)
+                st.json(cfg_data)
+
 
 
 # ==============================================================================
@@ -865,7 +881,7 @@ elif selected_page == "Page 8: About / Methodology":
     """, unsafe_allow_html=True)
 
     st.markdown(
-        """
+        r"""
         ### 1. Research Problem
         Code-mixed languages—specifically **Hinglish** (Hindi written in Roman or Devanagari script intermingled 
         with English)—pose significant challenges for conventional NLP models.
@@ -894,9 +910,23 @@ elif selected_page == "Page 8: About / Methodology":
         2. Conservative canonical dictionary mapping (no translation; semantic preservation).
         3. Offset preservation to maintain alignment with gold annotations.
 
-        ### 5. Research Integrity & Safeguards
+        ### 5. Documented Failure Modes (Error Analysis Taxonomy)
+        The system classifies observed model prediction errors into 10 structured diagnostic categories:
+        1. **Aspect extraction failure** (Missing or boundary-shifted target entity span)
+        2. **Opinion extraction failure** (Missing evaluative phrase or intensifier)
+        3. **Aspect-opinion binding failure** (Multi-aspect review cross-clause context bleed)
+        4. **Transliteration recognition failure** (Non-standard phonetic Romanized spelling variance)
+        5. **Sentiment classification failure** (Standard polarity classification misclassification)
+        6. **Negation handling failure** (Failure to invert polarity when negated by 'nahi', 'not')
+        7. **Language-identification failure** (Disagreement between predicted and true span language)
+        8. **Annotation disagreement** (Conflict between human label and deterministic derivation)
+        9. **Implicit aspect or opinion** (Latent sentiment lacking explicit anchor token)
+        10. **Other / unresolved** (Complex discourse or idiomatic exceptions)
+
+        ### 6. Research Integrity & Literature Foundations
+        - **Literature Survey:** For detailed analysis of 10 seminal peer-reviewed research papers, see `docs/LITERATURE_SURVEY.md`.
         - **No Synthetic Numbers:** Evaluation metrics and charts are strictly computed from actual model inferences.
         - **Grouped Splitting:** Splitting is performed strictly by `review_id` to prevent identical customer reviews from leaking into test partitions.
-        - **Uncertainty Reporting:** Bootstrap confidence intervals are reported only when sample sizes are statistically sufficient ($N \\ge 10$).
+        - **Uncertainty Reporting:** Review-level clustered bootstrap confidence intervals are computed only when sample sizes are statistically sufficient ($N \ge 10$).
         """
     )

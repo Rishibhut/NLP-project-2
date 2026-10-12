@@ -22,6 +22,8 @@ DEFAULT_OPINION_PATTERNS: List[str] = [
     r"\b(?:are\s+responsive|feel\s+great|is\s+neat|are\s+timely|is\s+fast|is\s+soft)\b",
     r"\b(?:durable\s+lagta\s+hai|weak\s+hai|attractive\s+hai|safe\s+thi|on\s+schedule\s+hui)\b",
     r"\b(?:are\s+stiff\s+and\s+feel\s+cheap|test\s+pass\s+ho\s+gaya|was\s+super\s+simple|clear\s+tha)\b",
+    r"\b(?:time\s+par\s+nahi\s+hui|time\s+par\s+nahi\s+tha|delivery\s+late\s+hui|late\s+delivery)\b",
+    r"\b(?:kaafi\s+achhi\s+hai|kaafi\s+acchi\s+hai|kaafi\s+accha\s+hai|kaafi\s+badiya\s+hai)\b",
 ]
 
 # Single-word polar anchors

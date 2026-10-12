@@ -1,20 +1,35 @@
 """
 Error Analysis module for Hinglish ABSA and Cross-Lingual Evaluation.
-Automatically diagnoses, categorizes, and provides inspectable records of model prediction failures.
+Automatically classifies observed errors into the 10 documented research categories:
+1. Aspect extraction failure
+2. Opinion extraction failure
+3. Aspect-opinion binding failure
+4. Transliteration recognition failure
+5. Sentiment classification failure
+6. Negation handling failure
+7. Language-identification failure
+8. Annotation disagreement
+9. Implicit aspect or opinion
+10. Other / unresolved
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-import pandas as pd
+from typing import Dict, List, Optional, Any, Tuple
+import os
 import re
+import pandas as pd
 
-ERROR_CATEGORIES = [
-    "Incorrect sentiment polarity",
-    "Negation-handling error",
-    "Multiple-aspect confusion",
-    "Transliteration-related error",
-    "Cross-lingual alignment error",
-    "Ambiguous or neutral boundary",
+DOCUMENTED_ERROR_CATEGORIES = [
+    "Aspect extraction failure",
+    "Opinion extraction failure",
+    "Aspect-opinion binding failure",
+    "Transliteration recognition failure",
+    "Sentiment classification failure",
+    "Negation handling failure",
+    "Language-identification failure",
+    "Annotation disagreement",
+    "Implicit aspect or opinion",
+    "Other / unresolved",
 ]
 
 
@@ -24,74 +39,102 @@ class ErrorRecord:
     review_text: str
     aspect_term: str
     opinion_term: str
-    pair_type: str
-    gold_sentiment: str
+    true_sentiment: str
     predicted_sentiment: str
+    true_pair_type: str
+    predicted_pair_type: str
     error_categories: List[str]
-    diagnosis_detail: str
+    explanation: str
+    model_name: str
 
 
 def diagnose_prediction_error(
     row: pd.Series,
     pred_sentiment: str,
+    pred_pair_type: Optional[str] = None,
+    pred_aspect: Optional[str] = None,
+    pred_opinion: Optional[str] = None,
+    model_name: str = "Model",
     all_aspects_in_review: int = 1,
 ) -> Optional[ErrorRecord]:
     """
-    Diagnoses the underlying reason for a model prediction failure.
+    Diagnoses model prediction errors according to the 10 documented categories.
     """
-    gold_sentiment = str(row["sentiment"]).strip()
-    pred_sentiment = str(pred_sentiment).strip()
+    gold_sent = str(row["sentiment"]).strip()
+    pred_sent = str(pred_sentiment).strip()
+    true_pair = str(row.get("pair_type", "Uncertain"))
+    pred_pair = str(pred_pair_type or true_pair)
 
-    if gold_sentiment == pred_sentiment:
+    # Check if there is an error in sentiment or extraction
+    is_sent_err = (gold_sent != pred_sent)
+    is_pair_err = (pred_pair != true_pair and pred_pair_type is not None)
+    is_asp_err = (pred_aspect is not None and str(pred_aspect).lower() != str(row["aspect_term"]).lower())
+    is_op_err = (pred_opinion is not None and str(pred_opinion).lower() != str(row["opinion_term"]).lower())
+
+    if not (is_sent_err or is_pair_err or is_asp_err or is_op_err):
         return None
 
     review_text = str(row["review_text"])
     op_term = str(row["opinion_term"])
-    pair_type = str(row.get("pair_type", "Uncertain"))
-    categories = ["Incorrect sentiment polarity"]
+    asp_term = str(row["aspect_term"])
+
+    assigned_categories = []
     explanations = []
 
-    # 1. Negation handling error check
-    neg_pattern = re.compile(r"\b(?:nahi|nhi|nahin|not|mat|never|no)\b", re.IGNORECASE)
-    if neg_pattern.search(review_text) or neg_pattern.search(op_term):
-        if (gold_sentiment == "Negative" and pred_sentiment == "Positive") or \
-           (gold_sentiment == "Positive" and pred_sentiment == "Negative"):
-            categories.append("Negation-handling error")
-            explanations.append("Contains negation operator that model may have inverted or missed.")
+    if is_asp_err:
+        assigned_categories.append("Aspect extraction failure")
+        explanations.append(f"Predicted aspect '{pred_aspect}' does not match gold span '{asp_term}'.")
 
-    # 2. Multiple-aspect confusion
-    if all_aspects_in_review > 1:
-        categories.append("Multiple-aspect confusion")
-        explanations.append(f"Review contains {all_aspects_in_review} aspects; potential context bleed.")
+    if is_op_err:
+        assigned_categories.append("Opinion extraction failure")
+        explanations.append(f"Predicted opinion '{pred_opinion}' does not match gold span '{op_term}'.")
 
-    # 3. Transliteration variant influence
-    translit_variants = ["bohot", "achha", "khraab", "bekar", "ghatya", "ekdm", "blkl"]
-    if any(var in review_text.lower() for var in translit_variants):
-        categories.append("Transliteration-related error")
-        explanations.append("Contains non-standard Romanized spelling variants.")
+    if is_pair_err:
+        assigned_categories.append("Language-identification failure")
+        explanations.append(f"Predicted pair type '{pred_pair}' disagrees with reference '{true_pair}'.")
 
-    # 4. Cross-lingual alignment error
-    if pair_type == "cross-lingual":
-        categories.append("Cross-lingual alignment error")
-        explanations.append("Aspect and opinion are in different languages.")
+    if is_sent_err:
+        # Check negation handling
+        neg_pattern = re.compile(r"\b(?:nahi|nhi|nahin|not|mat|never|no|without|kabhi\s+nahi)\b", re.IGNORECASE)
+        has_neg = bool(neg_pattern.search(review_text) or neg_pattern.search(op_term))
 
-    # 5. Neutral boundary ambiguity
-    if gold_sentiment == "Neutral" or pred_sentiment == "Neutral":
-        categories.append("Ambiguous or neutral boundary")
-        explanations.append("Boundary confusion involving neutral sentiment polarity.")
+        if has_neg and ((gold_sent == "Negative" and pred_sent == "Positive") or (gold_sent == "Positive" and pred_sent == "Negative")):
+            assigned_categories.append("Negation handling failure")
+            explanations.append("Failed to invert polarity in presence of negation operator.")
+        elif all_aspects_in_review > 1:
+            assigned_categories.append("Aspect-opinion binding failure")
+            explanations.append(f"Multiple aspects ({all_aspects_in_review}) in review caused sentiment context bleed.")
+        else:
+            assigned_categories.append("Sentiment classification failure")
+            explanations.append(f"Misclassified true '{gold_sent}' as '{pred_sent}'.")
 
-    detail = " | ".join(explanations) if explanations else "Misclassified sentiment polarity."
+        # Check transliteration variants
+        translit_variants = ["bohot", "achha", "khraab", "bekar", "ghatya", "ekdm", "blkl", "accccha", "soooo"]
+        if any(var in review_text.lower() for var in translit_variants):
+            assigned_categories.append("Transliteration recognition failure")
+            explanations.append("Review contains informal non-standard Romanized spelling variants.")
+
+        # Check annotation ambiguity
+        if row.get("pair_type_disagreement", False):
+            assigned_categories.append("Annotation disagreement")
+            explanations.append("Dataset record has an existing annotation/derived pair disagreement.")
+
+    if not assigned_categories:
+        assigned_categories.append("Other / unresolved")
+        explanations.append("Uncategorized prediction discrepancy.")
 
     return ErrorRecord(
         review_id=row["review_id"],
         review_text=review_text,
-        aspect_term=row["aspect_term"],
+        aspect_term=asp_term,
         opinion_term=op_term,
-        pair_type=pair_type,
-        gold_sentiment=gold_sentiment,
-        predicted_sentiment=pred_sentiment,
-        error_categories=categories,
-        diagnosis_detail=detail,
+        true_sentiment=gold_sent,
+        predicted_sentiment=pred_sent,
+        true_pair_type=true_pair,
+        predicted_pair_type=pred_pair,
+        error_categories=assigned_categories,
+        explanation=" | ".join(explanations),
+        model_name=model_name,
     )
 
 
@@ -99,67 +142,82 @@ def run_error_analysis(
     df: pd.DataFrame,
     y_true_col: str = "sentiment",
     y_pred_col: str = "predicted_sentiment",
+    pred_pair_col: Optional[str] = None,
+    model_name: str = "Model",
+    output_dir: Optional[str] = "results",
 ) -> Tuple[List[ErrorRecord], pd.DataFrame, Dict[str, Any]]:
     """
-    Analyzes all misclassifications in a DataFrame.
-    Returns:
-        - List of ErrorRecord objects
-        - DataFrame of errors for export and display
-        - Summary statistics dictionary
+    Runs diagnostic analysis over model outputs, categorizing errors into 10 classes
+    and saving results/error_analysis_<model_name>.csv.
     """
-    # Count aspects per review_id
     aspect_counts = df["review_id"].value_counts().to_dict()
-
     error_records: List[ErrorRecord] = []
-    category_counts: Dict[str, int] = {cat: 0 for cat in ERROR_CATEGORIES}
+    category_counts = {cat: 0 for cat in DOCUMENTED_ERROR_CATEGORIES}
 
     for _, row in df.iterrows():
         n_aspects = aspect_counts.get(row["review_id"], 1)
-        err = diagnose_prediction_error(row, str(row[y_pred_col]), all_aspects_in_review=n_aspects)
+        pred_sent = str(row[y_pred_col])
+        pred_pair = str(row[pred_pair_col]) if (pred_pair_col and pred_pair_col in row) else None
+
+        err = diagnose_prediction_error(
+            row=row,
+            pred_sentiment=pred_sent,
+            pred_pair_type=pred_pair,
+            model_name=model_name,
+            all_aspects_in_review=n_aspects,
+        )
         if err:
             error_records.append(err)
-            for cat in err.error_categories:
-                category_counts[cat] = category_counts.get(cat, 0) + 1
+            for c in err.error_categories:
+                category_counts[c] = category_counts.get(c, 0) + 1
 
     total_samples = len(df)
     total_errors = len(error_records)
     error_rate = round((total_errors / max(1, total_samples)) * 100, 2)
 
-    # Subgroup error rates
+    # Subgroup breakdown
     same_df = df[df["pair_type"] == "same-language"]
     cross_df = df[df["pair_type"] == "cross-lingual"]
 
-    same_errors = sum(1 for e in error_records if e.pair_type == "same-language")
-    cross_errors = sum(1 for e in error_records if e.pair_type == "cross-lingual")
-
-    same_error_rate = round((same_errors / max(1, len(same_df))) * 100, 2) if len(same_df) > 0 else 0.0
-    cross_error_rate = round((cross_errors / max(1, len(cross_df))) * 100, 2) if len(cross_df) > 0 else 0.0
+    same_err_cnt = sum(1 for e in error_records if e.true_pair_type == "same-language")
+    cross_err_cnt = sum(1 for e in error_records if e.true_pair_type == "cross-lingual")
 
     stats = {
+        "model_name": model_name,
         "total_samples": total_samples,
         "total_errors": total_errors,
-        "overall_error_rate": error_rate,
-        "same_lang_errors": same_errors,
-        "same_lang_error_rate": same_error_rate,
-        "cross_lang_errors": cross_errors,
-        "cross_lang_error_rate": cross_error_rate,
+        "overall_error_rate_pct": error_rate,
+        "same_lang_errors": same_err_cnt,
+        "same_lang_error_rate_pct": round((same_err_cnt / max(1, len(same_df))) * 100, 2),
+        "cross_lang_errors": cross_err_cnt,
+        "cross_lang_error_rate_pct": round((cross_err_cnt / max(1, len(cross_df))) * 100, 2),
         "category_counts": category_counts,
     }
 
-    # Format into DataFrame
+    # Build CSV export DataFrame
     rows_data = []
     for e in error_records:
         rows_data.append({
-            "Review ID": e.review_id,
-            "Review Text": e.review_text,
-            "Aspect": e.aspect_term,
-            "Opinion": e.opinion_term,
-            "Pair Type": e.pair_type,
-            "Gold Sentiment": e.gold_sentiment,
-            "Predicted": e.predicted_sentiment,
-            "Error Categories": ", ".join(e.error_categories),
-            "Diagnosis Detail": e.diagnosis_detail,
+            "review_id": e.review_id,
+            "review_text": e.review_text,
+            "aspect_term": e.aspect_term,
+            "opinion_term": e.opinion_term,
+            "true_sentiment": e.true_sentiment,
+            "predicted_sentiment": e.predicted_sentiment,
+            "true_pair_type": e.true_pair_type,
+            "predicted_pair_type": e.predicted_pair_type,
+            "error_category": ", ".join(e.error_categories),
+            "explanation": e.explanation,
+            "model_name": e.model_name,
         })
 
     error_df = pd.DataFrame(rows_data)
+
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        safe_model_name = model_name.replace(" ", "_").replace("+", "_").lower()
+        out_csv = os.path.join(output_dir, f"error_analysis_{safe_model_name}.csv")
+        error_df.to_csv(out_csv, index=False)
+        stats["saved_csv_path"] = out_csv
+
     return error_records, error_df, stats

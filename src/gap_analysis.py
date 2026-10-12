@@ -33,48 +33,54 @@ def compute_gap_bootstrap_ci(
     cross_df: pd.DataFrame,
     y_true_col: str = "sentiment",
     y_pred_col: str = "predicted_sentiment",
+    group_col: str = "review_id",
     n_bootstraps: int = 1000,
     random_state: int = 42,
 ) -> Optional[Tuple[float, float]]:
     """
-    Computes 95% bootstrap confidence interval for (F1_same - F1_cross) in percentage points.
+    Computes 95% group-aware bootstrap confidence interval for (F1_same - F1_cross) in percentage points.
+    Samples review_ids with replacement to account for intra-review aspect clustering and prevent overoptimistic variance.
     """
-    if len(same_df) < 10 or len(cross_df) < 10:
+    if len(same_df) < 5 or len(cross_df) < 5:
+        return None
+
+    same_reviews = same_df[group_col].unique()
+    cross_reviews = cross_df[group_col].unique()
+
+    if len(same_reviews) < 4 or len(cross_reviews) < 4:
         return None
 
     rng = np.random.RandomState(random_state)
     labels = ["Negative", "Neutral", "Positive"]
     diffs = []
 
-    y_true_same = same_df[y_true_col].values
-    y_pred_same = same_df[y_pred_col].values
-    y_true_cross = cross_df[y_true_col].values
-    y_pred_cross = cross_df[y_pred_col].values
+    # Map review_id to sub-dataframes for fast lookup
+    same_by_rev = {r_id: g for r_id, g in same_df.groupby(group_col)}
+    cross_by_rev = {r_id: g for r_id, g in cross_df.groupby(group_col)}
 
-    n_s = len(same_df)
-    n_c = len(cross_df)
+    n_s_rev = len(same_reviews)
+    n_c_rev = len(cross_reviews)
 
     for _ in range(n_bootstraps):
-        idx_s = rng.randint(0, n_s, size=n_s)
-        idx_c = rng.randint(0, n_c, size=n_c)
+        # Sample review clusters with replacement
+        sampled_s_ids = rng.choice(same_reviews, size=n_s_rev, replace=True)
+        sampled_c_ids = rng.choice(cross_reviews, size=n_c_rev, replace=True)
 
-        s_true_sample = y_true_same[idx_s]
-        s_pred_sample = y_pred_same[idx_s]
-        c_true_sample = y_true_cross[idx_c]
-        c_pred_sample = y_pred_cross[idx_c]
+        s_batch = pd.concat([same_by_rev[rid] for rid in sampled_s_ids], ignore_index=True)
+        c_batch = pd.concat([cross_by_rev[rid] for rid in sampled_c_ids], ignore_index=True)
 
-        if len(np.unique(s_true_sample)) < 2 or len(np.unique(c_true_sample)) < 2:
+        if s_batch[y_true_col].nunique() < 2 or c_batch[y_true_col].nunique() < 2:
             continue
 
         try:
-            f1_s = f1_score(s_true_sample, s_pred_sample, labels=labels, average="macro", zero_division=0)
-            f1_c = f1_score(c_true_sample, c_pred_sample, labels=labels, average="macro", zero_division=0)
+            f1_s = f1_score(s_batch[y_true_col], s_batch[y_pred_col], labels=labels, average="macro", zero_division=0)
+            f1_c = f1_score(c_batch[y_true_col], c_batch[y_pred_col], labels=labels, average="macro", zero_division=0)
             diff_pp = (f1_s - f1_c) * 100.0
             diffs.append(diff_pp)
         except Exception:
             continue
 
-    if len(diffs) < 100:
+    if len(diffs) < 50:
         return None
 
     lower = float(np.percentile(diffs, 2.5))

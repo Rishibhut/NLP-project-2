@@ -1,0 +1,2 @@
+review_id,review_text,aspect_term,opinion_term,true_sentiment,predicted_sentiment,true_pair_type,predicted_pair_type,error_category,explanation,model_name
+8,"Is price range me performance lajawab hai, value for money deal!",deal,value for money,Positive,Neutral,same-language,same-language,Aspect-opinion binding failure,Multiple aspects (2) in review caused sentiment context bleed.,Lexicon Baseline

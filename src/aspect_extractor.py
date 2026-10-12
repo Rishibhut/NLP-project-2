@@ -27,6 +27,7 @@ DEFAULT_ASPECT_LEXICON: Set[str] = {
     "finish", "cushioning", "arch support", "grip",
     # Service / General
     "delivery time", "delivery", "packaging", "customer support", "customer care",
+    "charging speed", "charging", "speed", "service", "range",
     "price", "keemat", "deal", "value", "cheez", "product"
 }
 

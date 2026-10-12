@@ -113,3 +113,45 @@ def split_by_review_id(
         val_reviews=len(val_ids),
         test_reviews=len(test_ids),
     )
+
+
+def verify_no_leakage(splits: DatasetSplits) -> bool:
+    """
+    Rigorously verifies that no review_id is shared across train, val, and test splits.
+    Returns True if strictly disjoint, raises AssertionError if leakage is found.
+    """
+    train_ids = set(splits.train_df["review_id"].unique())
+    val_ids = set(splits.val_df["review_id"].unique())
+    test_ids = set(splits.test_df["review_id"].unique())
+
+    inter_train_val = train_ids.intersection(val_ids)
+    inter_train_test = train_ids.intersection(test_ids)
+    inter_val_test = val_ids.intersection(test_ids)
+
+    if inter_train_val or inter_train_test or inter_val_test:
+        raise AssertionError(
+            f"Data leakage detected! "
+            f"Train/Val overlap: {inter_train_val}, "
+            f"Train/Test overlap: {inter_train_test}, "
+            f"Val/Test overlap: {inter_val_test}"
+        )
+    return True
+
+
+def get_split_distributions(splits: DatasetSplits) -> dict:
+    """Returns detailed summary distributions across partitions."""
+    def get_part_info(df):
+        return {
+            "records": len(df),
+            "unique_reviews": int(df["review_id"].nunique()),
+            "sentiments": {str(k): int(v) for k, v in df["sentiment"].value_counts().items()},
+            "pair_types": {str(k): int(v) for k, v in df["pair_type"].value_counts().items()},
+            "categories": {str(k): int(v) for k, v in df["product_category"].value_counts().items()},
+        }
+    return {
+        "train": get_part_info(splits.train_df),
+        "validation": get_part_info(splits.val_df),
+        "test": get_part_info(splits.test_df),
+        "leakage_free": verify_no_leakage(splits),
+    }
+

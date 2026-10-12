@@ -1,0 +1,4 @@
+Model,Original_Macro_F1,Normalized_Macro_F1,Delta_F1_pp,Original_Alignment_Gap_pp,Normalized_Alignment_Gap_pp,Delta_Gap_pp,Modified_Test_Reviews
+Lexicon Baseline,0.903,0.903,0.0,-44.44,-44.44,0.0,4
+TF-IDF + Logistic Regression,0.3333,0.3333,0.0,-15.56,-15.56,0.0,4
+TF-IDF + Linear SVM,0.3333,0.3333,0.0,-15.56,-15.56,0.0,4

@@ -5,7 +5,7 @@ Preserves original strings, maintains character alignment, and provides detailed
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import re
 import pandas as pd
 
