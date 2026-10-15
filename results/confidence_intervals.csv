@@ -1,0 +1,9 @@
+Model,Metric,Point_Estimate,CI_95_Lower,CI_95_Upper,Method,Resampling_Unit,Sample_Size,Status
+Lexicon Baseline,Overall Macro-F1,0.903,0.5079,1.0,"Percentile Bootstrap (1,000 resamples)",Record,10,Computed
+Lexicon Baseline,Alignment Gap (pp),-44.44,,,Review-Level Cluster Bootstrap,Review,6,Inconclusive (Subsets below bootstrap threshold N>=5)
+TF-IDF + Logistic Regression,Overall Macro-F1,0.3333,0.1333,0.5359,"Percentile Bootstrap (1,000 resamples)",Record,10,Computed
+TF-IDF + Logistic Regression,Alignment Gap (pp),-15.56,,,Review-Level Cluster Bootstrap,Review,6,Inconclusive (Subsets below bootstrap threshold N>=5)
+TF-IDF + Linear SVM,Overall Macro-F1,0.3333,0.1333,0.5359,"Percentile Bootstrap (1,000 resamples)",Record,10,Computed
+TF-IDF + Linear SVM,Alignment Gap (pp),-15.56,,,Review-Level Cluster Bootstrap,Review,6,Inconclusive (Subsets below bootstrap threshold N>=5)
+MuRIL,Overall Macro-F1,0.3,0.0606,0.4889,"Percentile Bootstrap (1,000 resamples)",Record,10,Computed
+MuRIL,Alignment Gap (pp),-26.67,,,Review-Level Cluster Bootstrap,Review,6,Inconclusive (Subsets below bootstrap threshold N>=5)

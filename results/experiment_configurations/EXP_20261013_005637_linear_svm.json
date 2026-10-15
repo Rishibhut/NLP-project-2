@@ -1,0 +1,118 @@
+{
+  "experiment_id": "EXP_20261013_005637_linear_svm",
+  "timestamp": "2026-10-13T00:56:37.661504",
+  "dataset_path": "data/research_reviews_annotated.csv",
+  "dataset_sha256": "3b91dfb411249f3dad8da5a66cdda063fa5b35acc1b7061248212e7692e19a1e",
+  "model_name": "TF-IDF + Linear SVM",
+  "random_seed": 42,
+  "train_test_split": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15
+  },
+  "split_distributions": {
+    "train": {
+      "records": 40,
+      "unique_reviews": 28,
+      "sentiments": {
+        "Positive": 22,
+        "Negative": 16,
+        "Neutral": 2
+      },
+      "pair_types": {
+        "cross-lingual": 23,
+        "same-language": 11,
+        "Uncertain": 6
+      },
+      "categories": {
+        "Smartphones": 8,
+        "Footwear": 7,
+        "Audio": 6,
+        "Laptops": 6,
+        "Electronics": 5,
+        "Clothing": 4,
+        "Customer Service": 2,
+        "Accessories": 1,
+        "Wearables": 1
+      }
+    },
+    "validation": {
+      "records": 11,
+      "unique_reviews": 6,
+      "sentiments": {
+        "Positive": 7,
+        "Negative": 4
+      },
+      "pair_types": {
+        "cross-lingual": 7,
+        "same-language": 3,
+        "Uncertain": 1
+      },
+      "categories": {
+        "Smartphones": 4,
+        "Audio": 2,
+        "Customer Service": 2,
+        "Accessories": 2,
+        "Wearables": 1
+      }
+    },
+    "test": {
+      "records": 10,
+      "unique_reviews": 6,
+      "sentiments": {
+        "Positive": 6,
+        "Neutral": 2,
+        "Negative": 2
+      },
+      "pair_types": {
+        "cross-lingual": 4,
+        "Uncertain": 4,
+        "same-language": 2
+      },
+      "categories": {
+        "Electronics": 4,
+        "Smartphones": 3,
+        "Wearables": 2,
+        "Audio": 1
+      }
+    },
+    "leakage_free": true
+  },
+  "metrics_condition_a": {
+    "accuracy": 0.5,
+    "macro_f1": 0.3333,
+    "same_lang_f1": 0.3333,
+    "cross_lang_f1": 0.4889,
+    "alignment_gap_pp": -15.56
+  },
+  "metrics_condition_b_normalized": {
+    "accuracy": 0.5,
+    "macro_f1": 0.3333,
+    "same_lang_f1": 0.3333,
+    "cross_lang_f1": 0.4889,
+    "alignment_gap_pp": -15.56
+  },
+  "error_analysis_summary": {
+    "model_name": "TF-IDF + Linear SVM",
+    "total_samples": 10,
+    "total_errors": 5,
+    "overall_error_rate_pct": 50.0,
+    "same_lang_errors": 0,
+    "same_lang_error_rate_pct": 0.0,
+    "cross_lang_errors": 1,
+    "cross_lang_error_rate_pct": 25.0,
+    "category_counts": {
+      "Aspect extraction failure": 0,
+      "Opinion extraction failure": 0,
+      "Aspect-opinion binding failure": 4,
+      "Transliteration recognition failure": 2,
+      "Sentiment classification failure": 0,
+      "Negation handling failure": 1,
+      "Language-identification failure": 0,
+      "Annotation disagreement": 4,
+      "Implicit aspect or opinion": 0,
+      "Other / unresolved": 0
+    },
+    "saved_csv_path": "results/error_analysis_tf-idf___linear_svm.csv"
+  }
+}

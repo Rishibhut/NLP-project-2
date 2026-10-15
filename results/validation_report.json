@@ -123,6 +123,8 @@
         "opinion_language": "Mixed"
       }
     ],
+    "review_text_inconsistencies": 0,
+    "category_inconsistencies": 0,
     "sentiment_counts": {
       "Positive": 35,
       "Negative": 22,

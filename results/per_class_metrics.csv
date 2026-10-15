@@ -8,3 +8,6 @@ TF-IDF + Logistic Regression,Positive,0.6667,0.6667,0.6667,6
 TF-IDF + Linear SVM,Negative,0.25,0.5,0.3333,2
 TF-IDF + Linear SVM,Neutral,0.0,0.0,0.0,2
 TF-IDF + Linear SVM,Positive,0.6667,0.6667,0.6667,6
+MuRIL,Negative,0.3333,1.0,0.5,2
+MuRIL,Neutral,0.0,0.0,0.0,2
+MuRIL,Positive,0.5,0.3333,0.4,6

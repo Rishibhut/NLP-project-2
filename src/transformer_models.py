@@ -317,17 +317,21 @@ class MultilingualABSAModel:
 
         return all_preds, all_confs
 
-    def save_checkpoint(self, output_dir: str) -> None:
-        """Saves model weights, tokenizer, and metadata."""
+    def save_checkpoint(self, output_dir: str, extra_meta: Optional[Dict[str, Any]] = None) -> None:
+        """Saves model weights, tokenizer, and comprehensive experiment metadata."""
         os.makedirs(output_dir, exist_ok=True)
         if self.model and self.tokenizer:
             self.model.save_pretrained(output_dir)
             self.tokenizer.save_pretrained(output_dir)
             config_meta = {
                 "model_name": self.model_name,
-                "hf_checkpoint": self.hf_checkpoint,
+                "model_identifier": self.hf_checkpoint,
+                "model_revision": "main",
                 "max_seq_len": self.max_seq_len,
+                "hardware_used": str(self.device),
             }
+            if extra_meta:
+                config_meta.update(extra_meta)
             with open(os.path.join(output_dir, "absa_config.json"), "w") as f:
                 json.dump(config_meta, f, indent=2)
 

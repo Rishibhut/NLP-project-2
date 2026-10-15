@@ -1,11 +1,17 @@
 {
-  "dataset_name": "Hinglish ABSA Benchmark Dataset (Research Subsets)",
-  "source_identifier": "Curated Multi-Domain Code-Mixed E-Commerce Reviews",
+  "dataset_name": "Hinglish ABSA Benchmark Dataset (Pilot Research Subset)",
+  "source_identifier": "Curated Multi-Domain Code-Mixed E-Commerce Pilot Reviews",
+  "source_verification_status": "UNVERIFIED (Constructed/curated pilot dataset, not a verified real-world platform crawl)",
+  "external_source_url": null,
   "license_or_usage": "Academic and Research Evaluation License (Non-Commercial)",
   "creation_date": "2026-10-12",
-  "description": "Curated Hinglish customer reviews across Smartphones, Audio, Laptops, Footwear, and Clothing. Explicitly annotated with aspect spans, opinion spans, polarities, span languages, and derived pair types.",
-  "schema_version": "2.0",
-  "is_empirical_study_ready": true,
-  "data_collection_method": "Multi-annotator agreement protocol with cross-lingual span alignment",
-  "annotation_protocol": "Guidelines require exact span containment in review_text, span-level language tagging (English, Hindi, Mixed, Uncertain), and deterministic pair-type derivation."
+  "audit_date": "2026-10-13",
+  "nature_of_data": "Manually constructed / Semi-synthetic illustrative pilot records",
+  "description": "Curated Hinglish customer reviews across 9 product categories (Smartphones, Audio, Laptops, Footwear, Clothing, etc.). Explicitly annotated with aspect spans, opinion spans, polarities, span languages, and derived pair types.",
+  "schema_version": "2.1",
+  "is_empirical_study_ready": false,
+  "study_readiness_notes": "Suitable for preliminary pilot evaluation and unit testing; insufficient sample size (N=61) for definitive statistical conclusions without wide confidence intervals.",
+  "data_collection_method": "Expert curation and deterministic rule derivation",
+  "inter_annotator_agreement": "UNVERIFIED (Single-expert curation with deterministic policy reconciliation)",
+  "annotation_protocol": "Guidelines require exact span containment in review_text, span-level language tagging (English, Hindi, Mixed, Uncertain), and deterministic pair-type derivation with strict uncertainty quarantine."
 }

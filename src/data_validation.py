@@ -39,10 +39,12 @@ class ValidationResult:
     cleaned_df: Optional[pd.DataFrame] = None
 
     def save_report(self, output_dir: str = "results") -> str:
-        """Saves a structured JSON and Markdown validation report to disk."""
+        """Saves structured JSON and text/markdown validation reports to disk."""
         os.makedirs(output_dir, exist_ok=True)
-        json_path = os.path.join(output_dir, "validation_report.json")
-        md_path = os.path.join(output_dir, "validation_report.md")
+        json_path = os.path.join(output_dir, "data_validation_report.json")
+        txt_path = os.path.join(output_dir, "data_validation_report.txt")
+        legacy_json_path = os.path.join(output_dir, "validation_report.json")
+        legacy_md_path = os.path.join(output_dir, "validation_report.md")
 
         report_dict = {
             "is_valid": self.is_valid,
@@ -55,38 +57,74 @@ class ValidationResult:
 
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(report_dict, f, indent=2)
+        with open(legacy_json_path, "w", encoding="utf-8") as f:
+            json.dump(report_dict, f, indent=2)
 
-        # Markdown report
-        md_content = f"""# Dataset Validation & Annotation Audit Report
+        # Detailed text and markdown report content
+        txt_content = f"""================================================================================
+DATASET VALIDATION & ANNOTATION AUDIT REPORT
+================================================================================
+Validation Status: {"PASS" if self.is_valid else "FAIL"}
+Total Records Inspected: {self.total_rows}
+Valid Usable Records: {self.valid_rows}
+Unique Customer Reviews: {self.stats.get("unique_reviews", 0)}
 
-- **Validation Status:** {"✅ PASS" if self.is_valid else "❌ FAIL"}
-- **Total Records:** {self.total_rows}
-- **Valid Usable Records:** {self.valid_rows}
-- **Unique Reviews:** {self.stats.get("unique_reviews", 0)}
+INCLUSION & EXCLUSION SUMMARY:
+- Records included in Sentiment Model Training: {self.valid_rows}
+- Records included in Primary Alignment Comparison: {self.stats.get("pair_type_counts", {}).get("same-language", 0) + self.stats.get("pair_type_counts", {}).get("cross-lingual", 0)}
+  * Same-Language Subset: {self.stats.get("pair_type_counts", {}).get("same-language", 0)}
+  * Cross-Lingual Subset: {self.stats.get("pair_type_counts", {}).get("cross-lingual", 0)}
+- Records excluded from Primary Alignment Comparison: {self.stats.get("pair_type_counts", {}).get("Uncertain", 0)}
+  * Exclusion Reason: Quarantined under uncertainty policy due to intra-span code-mixing (Mixed/Uncertain language tags).
 
-## Summary Statistics
-- **Missing Values:** {self.stats.get("missing_value_counts", {})}
-- **Duplicate Records:** {self.stats.get("duplicate_count", 0)}
-- **Span Mismatch Count:** {self.stats.get("span_mismatch_count", 0)}
-- **Pair-Type Disagreements:** {len(self.stats.get("pair_type_disagreements", []))}
+QUALITY & INTEGRITY CHECKS:
+- Missing Value Counts: {self.stats.get("missing_value_counts", {})}
+- Duplicate Annotation Records: {self.stats.get("duplicate_count", 0)}
+- Span Alignment Mismatches: {self.stats.get("span_mismatch_count", 0)}
+- Pair-Type Disagreements Detected: {len(self.stats.get("pair_type_disagreements", []))}
+- Review ID Text Inconsistencies: {self.stats.get("review_text_inconsistencies", 0)}
+- Category Inconsistencies per Review ID: {self.stats.get("category_inconsistencies", 0)}
 
-### Subset Record Counts
-- **Same-Language:** {self.stats.get("pair_type_counts", {}).get("same-language", 0)}
-- **Cross-Lingual:** {self.stats.get("pair_type_counts", {}).get("cross-lingual", 0)}
-- **Uncertain / Mixed:** {self.stats.get("pair_type_counts", {}).get("Uncertain", 0)}
-
-### Sentiment Class Distribution
+SENTIMENT CLASS DISTRIBUTION:
 {json.dumps(self.stats.get("sentiment_counts", {}), indent=2)}
 
-### Warnings & Disagreements
-"""
-        for w in self.warnings[:20]:
-            md_content += f"- {w}\n"
-        if len(self.warnings) > 20:
-            md_content += f"- ...and {len(self.warnings) - 20} more warnings.\n"
+PAIR TYPE DISTRIBUTION:
+{json.dumps(self.stats.get("pair_type_counts", {}), indent=2)}
 
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(md_content)
+PAIR-TYPE DISAGREEMENTS & RESOLUTION STATUS:
+"""
+        disagreements = self.stats.get("pair_type_disagreements", [])
+        if disagreements:
+            for d in disagreements:
+                txt_content += (
+                    f"- Row {d.get('row_index')} (review_id {d.get('review_id')}): "
+                    f"Original '{d.get('annotated_pair_type')}' vs Derived '{d.get('derived_pair_type')}' "
+                    f"({d.get('aspect_language')} + {d.get('opinion_language')}) | "
+                    f"Status: Resolved as Uncertain (quarantined)\n"
+                )
+        else:
+            txt_content += "None detected.\n"
+
+        txt_content += "\nERRORS (Prevents Execution):\n"
+        if self.errors:
+            for err in self.errors:
+                txt_content += f"- {err}\n"
+        else:
+            txt_content += "None (All integrity constraints satisfied)\n"
+
+        txt_content += "\nWARNINGS (Flagged for Inspection):\n"
+        if self.warnings:
+            for w in self.warnings[:30]:
+                txt_content += f"- {w}\n"
+            if len(self.warnings) > 30:
+                txt_content += f"- ...and {len(self.warnings) - 30} more warnings.\n"
+        else:
+            txt_content += "None.\n"
+
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write(txt_content)
+        with open(legacy_md_path, "w", encoding="utf-8") as f:
+            f.write(txt_content)
 
         return json_path
 
@@ -206,6 +244,28 @@ def validate_absa_dataframe(df: pd.DataFrame, strict: bool = False) -> Validatio
     cleaned["opinion_term"] = cleaned["opinion_term"].astype(str).str.strip()
     cleaned["product_category"] = cleaned["product_category"].fillna("General").astype(str).str.strip()
 
+    # Check review_id consistency: one review_id must map to one unique review_text and category
+    rev_text_inconsistencies = 0
+    cat_inconsistencies = 0
+    for r_id, g in cleaned.groupby("review_id"):
+        if g["review_text"].nunique() > 1:
+            rev_text_inconsistencies += 1
+            errors.append(f"Inconsistent review_text for review_id '{r_id}': found {g['review_text'].nunique()} distinct texts.")
+        if g["product_category"].nunique() > 1:
+            cat_inconsistencies += 1
+            warnings.append(f"Inconsistent product_category for review_id '{r_id}': found {g['product_category'].nunique()} distinct categories.")
+
+    # Check for empty strings in critical fields
+    empty_rev_mask = (cleaned["review_text"] == "")
+    if empty_rev_mask.sum() > 0:
+        errors.append(f"Found {empty_rev_mask.sum()} rows with empty review_text.")
+    empty_asp_mask = (cleaned["aspect_term"] == "")
+    if empty_asp_mask.sum() > 0:
+        errors.append(f"Found {empty_asp_mask.sum()} rows with empty aspect_term.")
+    empty_op_mask = (cleaned["opinion_term"] == "")
+    if empty_op_mask.sum() > 0:
+        errors.append(f"Found {empty_op_mask.sum()} rows with empty opinion_term.")
+
     # Compute character offsets and check containment
     asp_starts, asp_ends = [], []
     op_starts, op_ends = [], []
@@ -268,8 +328,11 @@ def validate_absa_dataframe(df: pd.DataFrame, strict: bool = False) -> Validatio
     cleaned.drop(columns=["opinion_language_norm"], inplace=True)
 
     # Validate pair_type: preserve human annotation, compute derived pair_type, flag disagreements
-    cleaned["annotated_pair_type"] = cleaned["pair_type"]
-    cleaned["pair_type_norm"] = cleaned["pair_type"].apply(normalize_pair_type_label)
+    if "annotated_pair_type" in df.columns:
+        cleaned["annotated_pair_type"] = df["annotated_pair_type"]
+    else:
+        cleaned["annotated_pair_type"] = cleaned["pair_type"]
+    cleaned["pair_type_norm"] = cleaned["annotated_pair_type"].apply(normalize_pair_type_label)
 
     derived_types = []
     disagreements = []
@@ -329,6 +392,8 @@ def validate_absa_dataframe(df: pd.DataFrame, strict: bool = False) -> Validatio
         "duplicate_count": duplicate_count,
         "span_mismatch_count": len(invalid_span_rows),
         "pair_type_disagreements": disagreements,
+        "review_text_inconsistencies": rev_text_inconsistencies,
+        "category_inconsistencies": cat_inconsistencies,
         "sentiment_counts": {str(k): int(v) for k, v in cleaned_valid["sentiment"].value_counts().items()} if valid_rows > 0 else {},
         "pair_type_counts": {str(k): int(v) for k, v in cleaned_valid["pair_type"].value_counts().items()} if valid_rows > 0 else {},
         "aspect_lang_counts": {str(k): int(v) for k, v in cleaned_valid["aspect_language"].value_counts().items()} if valid_rows > 0 else {},

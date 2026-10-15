@@ -125,9 +125,16 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # Initialize Session State
 def init_session_state():
     if "dataset" not in st.session_state:
-        # Load default demonstration dataset
+        # Load research dataset if available, otherwise fallback to demonstration dataset
+        research_path = "data/research_reviews_annotated.csv"
         default_path = "data/sample_reviews.csv"
-        if os.path.exists(default_path):
+        if os.path.exists(research_path):
+            df, val_res = load_dataset(research_path)
+            st.session_state["dataset"] = df
+            st.session_state["validation_result"] = val_res
+            st.session_state["is_demo_dataset"] = False
+            st.session_state["dataset_name"] = "research_reviews_annotated.csv (Pilot Research Dataset)"
+        elif os.path.exists(default_path):
             df, val_res = load_dataset(default_path)
             st.session_state["dataset"] = df
             st.session_state["validation_result"] = val_res
@@ -140,9 +147,28 @@ def init_session_state():
             st.session_state["dataset_name"] = "None"
 
     if "models" not in st.session_state:
-        st.session_state["models"] = {
+        models_dict = {
             "Lexicon Baseline": LexiconSentimentClassifier(),
         }
+        # Auto-load saved classical checkpoints if available
+        for m_type, m_label in [("logistic_regression", "TF-IDF + Logistic Regression"), ("linear_svm", "TF-IDF + Linear SVM")]:
+            cp_path = f"models/saved_checkpoints/{m_type}_seed42.joblib"
+            if os.path.exists(cp_path):
+                try:
+                    models_dict[m_label] = ClassicalABSAModel.load(cp_path)
+                except Exception:
+                    pass
+        # Auto-load saved transformer checkpoint if available
+        muril_dir = "models/saved_checkpoints/muril"
+        if os.path.exists(os.path.join(muril_dir, "model.safetensors")):
+            try:
+                muril_m = MultilingualABSAModel(model_name="MuRIL")
+                muril_m.load_checkpoint(muril_dir)
+                models_dict["MuRIL"] = muril_m
+            except Exception:
+                pass
+
+        st.session_state["models"] = models_dict
 
     if "experiments" not in st.session_state:
         st.session_state["experiments"] = []
@@ -615,15 +641,30 @@ elif selected_page == "Page 5: Cross-Lingual Gap Analysis":
         gap_detail = analyze_alignment_gap(eval_df, model_name=model_to_inspect)
 
         g_col1, g_col2, g_col3 = st.columns(3)
-        g_col1.metric("Same-Language Macro-F1", f"{gap_detail.f1_same_lang:.3f}" if gap_detail.f1_same_lang else "N/A", f"Samples: {gap_detail.n_same}")
-        g_col2.metric("Cross-Lingual Macro-F1", f"{gap_detail.f1_cross_lang:.3f}" if gap_detail.f1_cross_lang else "N/A", f"Samples: {gap_detail.n_cross}")
-        gap_display = f"+{gap_detail.alignment_gap_pp:.2f} pp" if (gap_detail.alignment_gap_pp and gap_detail.alignment_gap_pp > 0) else f"{gap_detail.alignment_gap_pp} pp" if gap_detail.alignment_gap_pp else "N/A"
+        g_col1.metric(
+            "Same-Language Macro-F1",
+            f"{gap_detail.f1_same_lang:.3f}" if gap_detail.f1_same_lang is not None else "N/A",
+            f"{gap_detail.n_same} pairs ({gap_detail.unique_reviews_same} reviews)",
+        )
+        g_col2.metric(
+            "Cross-Lingual Macro-F1",
+            f"{gap_detail.f1_cross_lang:.3f}" if gap_detail.f1_cross_lang is not None else "N/A",
+            f"{gap_detail.n_cross} pairs ({gap_detail.unique_reviews_cross} reviews)",
+        )
+        gap_display = f"{gap_detail.alignment_gap_pp:+.2f} pp" if gap_detail.alignment_gap_pp is not None else "N/A"
         g_col3.metric("Alignment Gap (Δ F1)", gap_display, "Difference in % points")
+
+        if gap_detail.is_conclusive:
+            st.success(f"🔬 **Statistical Status:** Conclusive Evidence ({gap_detail.evidence_level})")
+        else:
+            st.warning(f"⚠️ **Statistical Status:** Inconclusive (Exploratory Only) — Sample size is below the scientific adequacy threshold (minimum 15 pairs per subset).")
 
         st.info(f"**Research Finding:** {gap_detail.interpretation}")
 
         if gap_detail.gap_ci_95:
-            st.write(f"**95% Bootstrap Confidence Interval on Gap:** `[{gap_detail.gap_ci_95[0]:.2f} pp, {gap_detail.gap_ci_95[1]:.2f} pp]`")
+            st.write(f"**95% Cluster Bootstrap Confidence Interval on Gap:** `[{gap_detail.gap_ci_95[0]:.2f} pp, {gap_detail.gap_ci_95[1]:.2f} pp]`")
+        else:
+            st.caption("ℹ️ *95% Cluster Bootstrap Confidence Interval not computed: requires at least 4 unique reviews per subset to avoid degenerate sampling variance.*")
 
         # Linguistic breakdown table
         st.markdown("### 🧩 Subgroup Performance by Language Combination")
@@ -727,6 +768,15 @@ elif selected_page == "Page 6: Transliteration Normalization":
             }])
             st.dataframe(comp_stats, use_container_width=True)
             st.plotly_chart(plot_normalization_impact(comp_stats), use_container_width=True)
+
+    norm_comp_file = "results/normalization_comparison.csv"
+    if os.path.exists(norm_comp_file):
+        st.markdown("---")
+        st.markdown("### 📊 Held-Out Test Normalization Benchmark (Condition A vs. Condition B)")
+        st.write("Controlled evaluation across all models on held-out test split:")
+        norm_csv_df = pd.read_csv(norm_comp_file)
+        st.dataframe(norm_csv_df, use_container_width=True)
+        st.plotly_chart(plot_normalization_impact(norm_csv_df.rename(columns={"Original_Macro_F1": "Original F1", "Normalized_Macro_F1": "Normalized F1"})), use_container_width=True)
 
 
 # ==============================================================================

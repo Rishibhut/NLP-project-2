@@ -6,9 +6,9 @@
 
 ## 📌 1. Project Overview & Research Objective
 
-In multilingual e-commerce markets, consumer reviews frequently exhibit **code-mixing**, predominantly between Hindi and English (**Hinglish**). 
+In multilingual and code-mixed digital markets (e.g., India), customer product reviews frequently exhibit **intra-sentential code-mixing**, predominantly between Hindi and English (**Hinglish**). 
 
-A critical phenomenon in Hinglish product reviews is that consumers often mention the product attribute (**Aspect Term**) in English (e.g., *"Camera quality"*, *"Battery backup"*, *"Screen resolution"*) while expressing subjective sentiment (**Opinion Expression**) in Romanized Hindi (e.g., *"achhi hai"*, *"bahut kharab nikla"*, *"ekdum bekaar"*). 
+A prominent linguistic pattern in code-mixed product reviews is the structural asymmetry between the product entity and its evaluation: consumers frequently specify the product attribute (**Aspect Term**) in English (e.g., *"Camera quality"*, *"Battery backup"*, *"Screen resolution"*), while expressing the subjective appraisal (**Opinion Expression**) in Romanized Hindi (e.g., *"achhi hai"*, *"bahut kharab nikla"*, *"ekdum bekaar"*), or vice versa.
 
 ### Central Research Question:
 > *"Does aspect-opinion language alignment affect aspect-level sentiment classification performance on Hinglish product reviews, and can transliteration normalization reduce the observed performance difference?"*
@@ -17,13 +17,15 @@ The system quantifies the **Cross-Lingual Aspect–Opinion Alignment Gap**:
 
 $$\text{Alignment Gap} = \text{Macro-F1}_{\text{same-language}} - \text{Macro-F1}_{\text{cross-lingual}}$$
 
-A positive value indicates that NLP models experience degraded performance when the sentiment descriptor crosses linguistic boundaries relative to the target entity.
+- A **positive gap** indicates lower Macro-F1 on cross-lingual pairs than on same-language pairs.
+- A **negative gap** indicates the opposite.
+- Neither direction is assumed in advance; conclusions are derived strictly from empirical prediction evaluation.
 
 ---
 
 ## 🏗️ 2. System Architecture
 
-The application decouples the ABSA pipeline into modular, inspectable components:
+The application decouples the ABSA pipeline into modular, verifiable components:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -35,7 +37,7 @@ The application decouples the ABSA pipeline into modular, inspectable components
                 ▼                                             ▼
    [Aspect Term Extractor]                       [Opinion Term Extractor]
    - Camera quality (0..14)                      - achhi hai (15..24)
-   - battery backup (34..48)                     - bahut kharab hai (49..65)
+   - battery backup (30..44)                     - bahut kharab hai (45..61)
                 │                                             │
                 └──────────────────────┬──────────────────────┘
                                        ▼
@@ -49,223 +51,230 @@ The application decouples the ABSA pipeline into modular, inspectable components
    [Span Language Identifier]                    [Aspect Sentiment Classifier]
    - Aspect: English                             - Pair 1: Positive (Conf: 0.85)
    - Opinion: Hindi                              - Pair 2: Negative (Conf: 0.90)
-   - Pair Type: cross-lingual                    (Lexicon / TF-IDF / Transformers)
+   - Pair Type: cross-lingual                    (Lexicon / TF-IDF / MuRIL)
                 │                                             │
                 └──────────────────────┬──────────────────────┘
                                        ▼
                    [Cross-Lingual Alignment Gap Analyzer]
                    Gap = F1(same-language) - F1(cross-lingual)
+                   (Enforces 3-Tier Sample Adequacy Standard)
 ```
 
 ---
 
-## 📂 3. Directory Structure
+## 📊 3. Dataset Schema & Annotation Rules
 
-```
-hinglish-review-analyzer/
-│
-├── app.py                          # 8-Page Streamlit Academic Dashboard
-├── requirements.txt                # Pinned dependencies
-├── README.md                       # Comprehensive setup, methodology, and execution guide
-├── .gitignore                      # Git exclusion rules
-│
-├── data/
-│   ├── README.md                   # Dataset guidelines & integrity rules
-│   ├── sample_reviews.csv          # Illustrative demonstration dataset
-│   ├── research_reviews_annotated.csv # Prepared research benchmark dataset with character offsets
-│   ├── dataset_template.csv        # Blank CSV template for annotation workflows
-│   └── provenance_metadata.json    # Provenance tracking (source, license, collection method)
-│
-├── docs/
-│   └── LITERATURE_SURVEY.md        # Literature survey of 10 peer-reviewed papers across 13 fields
-│
-├── src/
-│   ├── __init__.py                 # Package initializer
-│   ├── data_loader.py              # Data loader with review_id group-aware splitting (no leakage)
-│   ├── data_validation.py          # Strict schema validation, span containment, label checks
-│   ├── dataset_preparation.py      # Research dataset ingestion, offset derivation, provenance
-│   ├── preprocessing.py            # Conservative transliteration normalizer & character flooding
-│   ├── language_identifier.py      # Span-level Romanized Hindi, English & Devanagari detection
-│   ├── aspect_extractor.py         # Aspect Term Extraction (ATE) and exact span evaluation
-│   ├── opinion_extractor.py        # Opinion Term Extraction (OTE) and polar pattern matcher
-│   ├── relation_extractor.py       # Aspect-Opinion Relation Extraction (AORE) & clause segmenter
-│   ├── sentiment_classifier.py     # Transparent lexicon baseline with negation handling
-│   ├── classical_models.py         # TF-IDF + Logistic Regression & Linear Support Vector Machine
-│   ├── transformer_models.py       # mBERT, XLM-RoBERTa, MuRIL with lazy loading & GPU/MPS detection
-│   ├── evaluation.py               # Multiclass F1, accuracy, review-level clustered bootstrap CIs
-│   ├── gap_analysis.py             # Alignment gap quantification & linguistic combo breakdowns
-│   ├── error_analysis.py           # 10-category failure mode diagnostic engine
-│   ├── run_experiments.py          # Standalone reproducible experiment CLI orchestrator
-│   └── visualization.py            # Interactive Plotly & Matplotlib/Seaborn visualization suite
-│
-├── tests/
-│   ├── test_data_validation.py     # Schema, span containment, label validation tests
-│   ├── test_preprocessing.py       # Normalization & character flooding reduction tests
-│   ├── test_language_identifier.py # Language classification & pair type determination tests
-│   ├── test_evaluation.py          # Multiclass metrics, span F1, and relation F1 tests
-│   ├── test_gap_analysis.py        # Alignment gap computation & sample size guard tests
-│   ├── test_leakage_and_splits.py  # Review ID data leakage prevention tests
-│   ├── test_complex_pipeline_cases.py # Contrast words (lekin/but), negation, missing checkpoints
-│   └── test_models.py              # Lexicon, ML baselines, and span/relation extractor tests
-│
-├── models/
-│   ├── README.md                   # Checkpoint policies & lazy-loading documentation
-│   └── saved_checkpoints/          # Serialized model weights (git-ignored)
-│
-└── results/
-    ├── README.md                   # Results documentation
-    ├── baseline_metrics.csv        # Evaluated model accuracies, macro-F1, and sample counts
-    ├── alignment_gap_results.csv   # Same-language vs. cross-lingual F1 and alignment gap (pp)
-    ├── per_class_metrics.csv       # Precision, recall, F1, support per sentiment class
-    ├── normalization_comparison.csv# Condition A (Original) vs. Condition B (Normalized) delta
-    ├── validation_report.md        # Dataset audit report with pair-type disagreement flags
-    ├── validation_report.json      # Structured validation report JSON
-    ├── confusion_matrices/         # Confusion matrix outputs
-    ├── predictions/                # Raw test partition model prediction logs
-    └── experiment_configurations/  # Traceable configuration JSON files with hashes and seeds
-```
+### Dataset Schema
+Each record in `data/research_reviews_annotated.csv` corresponds to a single aspect-opinion pair and contains the following fields:
+
+| Field Name | Type | Description |
+|---|---|---|
+| `review_id` | Integer | Unique identifier grouping all aspect mentions within the same customer review |
+| `review_text` | String | Raw review text containing the code-mixed statement |
+| `aspect_term` | String | Extracted target product aspect |
+| `opinion_term` | String | Associated sentiment-bearing opinion span |
+| `sentiment` | Categorical | Target sentiment polarity (`Positive`, `Negative`, `Neutral`) |
+| `aspect_language` | Categorical | Span language of aspect (`English`, `Hindi`, `Mixed`, `Uncertain`) |
+| `opinion_language` | Categorical | Span language of opinion (`English`, `Hindi`, `Mixed`, `Uncertain`) |
+| `pair_type` | Categorical | Derived linguistic pair alignment (`same-language`, `cross-lingual`, `Uncertain`) |
+| `product_category` | Categorical | E-commerce domain (`Smartphones`, `Audio`, `Laptops`, `Footwear`, etc.) |
+| `aspect_start_char` | Integer | Exact 0-indexed start character offset in `review_text` |
+| `aspect_end_char` | Integer | Exact 0-indexed end character offset in `review_text` |
+| `opinion_start_char` | Integer | Exact 0-indexed start character offset in `review_text` |
+| `opinion_end_char` | Integer | Exact 0-indexed end character offset in `review_text` |
+| `annotated_pair_type`| Categorical | Original human annotator assignment (preserved for auditing) |
+| `derived_pair_type`  | Categorical | Deterministically derived pair type based on span language rules |
+| `pair_type_disagreement` | Boolean | Flags whether human annotation disagrees with deterministic derivation |
+
+### Annotation Policy & Uncertainty Rules
+1. **Same-Language (`same-language`):**
+   - English Aspect + English Opinion $\to$ `same-language`
+   - Hindi-Roman Aspect + Hindi-Roman Opinion $\to$ `same-language`
+2. **Cross-Lingual (`cross-lingual`):**
+   - English Aspect + Hindi-Roman Opinion $\to$ `cross-lingual`
+   - Hindi-Roman Aspect + English Opinion $\to$ `cross-lingual`
+3. **Uncertainty & Quarantine Policy (`Uncertain`):**
+   - Spans containing intra-span code-mixing (tagged `Mixed`, e.g., English noun + Hindi auxiliary `"smooth hai"` or `"safe thi"`) are **never silently forced** into either `same-language` or `cross-lingual`.
+   - All `Mixed` or ambiguous records are classified as `Uncertain` and quarantined from primary alignment gap calculations to preserve scientific validity.
 
 ---
 
-## 💻 4. Installation & Environment Setup
+## 🔍 4. Dataset Provenance Status
+
+- **Pilot Benchmark Dataset (`data/research_reviews_annotated.csv`):** Contains 61 annotation records across 40 unique reviews.
+- **Verification Status:** Explicitly documented as an **unverified curated pilot dataset** in `data/provenance_metadata.json` and `data/dataset_provenance.md`. It is designed for controlled pipeline validation and pilot testing, not a verified large-scale web crawl.
+- **Public Benchmark Ingestion Workflow:** A documented public ingestion protocol is implemented in `src/dataset_preparation.py` to support importing verified public corpora (e.g., SemEval-2020 Task 9, GLUECoS, L3Cube-Hinglish) without scraping or platform violations.
+
+---
+
+## 💻 5. Environment Setup & Dependency Installation
 
 ### Prerequisites
-- Python 3.10, 3.11, 3.12, or 3.14+
+- Python 3.10 to 3.14+
 - `pip` package manager
 
-### A. Clone and Virtual Environment Setup
-
-**macOS / Linux:**
+### Installation Commands
 ```bash
+# 1. Clone repository
 git clone <repo-url>
 cd "NLP project 2"
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
 
-**Windows (PowerShell):**
-```powershell
-git clone <repo-url>
-cd "NLP project 2"
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\Activate.ps1
+
+# 3. Install pinned dependencies
 pip install -r requirements.txt
 ```
 
 ---
 
-## 🧪 5. Reproducing Experiments via CLI
+## 🛡️ 6. Data Validation & Leakage Prevention
 
-You can reproduce the entire experimental evaluation directly from terminal without launching the UI:
-
-### Step 1: Prepare and Validate the Research Dataset
+### Validation Pipeline
+Execute automated data validation:
 ```bash
-python3 -m src.dataset_preparation
+python3 -c "from src.data_validation import validate_absa_dataframe; import pandas as pd; res = validate_absa_dataframe(pd.read_csv('data/research_reviews_annotated.csv')); res.save_report('results'); print('Valid:', res.is_valid)"
 ```
-This generates `data/research_reviews_annotated.csv`, computes character offsets (`aspect_start_char`, `opinion_start_char`), and writes `results/validation_report.md`.
+This checks:
+- Schema completeness (all 9 mandatory columns present).
+- Empty string absence and missing value tracking.
+- Duplicate record detection.
+- Exact character span offset containment.
+- Categorical label legitimacy.
+- Review ID consistency (ensuring one `review_id` has a single `review_text` and single `product_category`).
+- Saves audit logs: `results/annotation_audit.csv`, `results/data_validation_report.json`, `results/data_validation_report.txt`.
 
-### Step 2: Execute Baseline Models, Alignment Gap, and Normalization Suite
+### Review-Level Splitting & Leakage Prevention
+Multiple aspect records frequently share the same `review_id`. To prevent review-level data leakage:
+- `split_by_review_id()` in `src/data_loader.py` performs group-aware splitting on `review_id` (Train: ~70%, Val: ~15%, Test: ~15%).
+- `verify_no_leakage()` guarantees disjoint partitions: no `review_id` or customer text is shared between training, validation, or testing partitions.
+- Feature extractors (e.g., TF-IDF) are strictly fitted on the training split only.
+
+---
+
+## ⚙️ 7. Model Implementations
+
+### Classical Baselines (`src/classical_models.py`)
+1. **TF-IDF + Logistic Regression:** Fitted with `class_weight='balanced'`, L2 regularization, and aspect-conditioned text representations:
+   `[Aspect Term] [SEP] [Opinion Term] [SEP] [Review Text]`
+2. **TF-IDF + Linear SVM:** LinearSVC with balanced weighting and softmax-approximated decision values.
+- Serialized checkpoints are saved to `models/saved_checkpoints/`.
+
+### Multilingual Transformer Models (`src/transformer_models.py`)
+- Supported architectures: **MuRIL** (`google/muril-base-cased`), **mBERT** (`bert-base-multilingual-cased`), and **XLM-RoBERTa** (`xlm-roberta-base`).
+- Aspect-conditioned sequence input: `Aspect: {aspect} | Opinion: {opinion} | Context: {review}`.
+- Checkpoints are saved with complete experiment metadata: model identifier, revision, learning rate, batch size, epoch count, duration, and hardware detected (`mps`/`cuda`/`cpu`).
+
+---
+
+## 🔬 8. Reproducing Experiments via CLI
+
+Execute the complete experimental pipeline:
+
 ```bash
-python3 -m src.run_experiments --dataset data/research_reviews_annotated.csv --seed 42
+# Run baseline models and MuRIL transformer on held-out test split
+python3 -m src.run_experiments --dataset data/research_reviews_annotated.csv --seed 42 --transformer MuRIL
 ```
-This trains the TF-IDF models on the train split, evaluates on the held-out test split, computes review-level clustered bootstrap intervals, runs 10-category error analysis, and populates:
+
+Or run classical baselines only:
+```bash
+python3 -m src.run_experiments --dataset data/research_reviews_annotated.csv --seed 42 --no_transformers
+```
+
+Expected output artifacts written to `results/`:
 - `results/baseline_metrics.csv`
 - `results/alignment_gap_results.csv`
 - `results/per_class_metrics.csv`
+- `results/confidence_intervals.csv`
 - `results/normalization_comparison.csv`
+- `results/annotation_audit.csv`
+- `results/data_validation_report.json`
+- `results/data_validation_report.txt`
+- `results/confusion_matrices/`
+- `results/predictions/`
 - `results/experiment_configurations/`
-
-### Step 3: Run the Complete Automated Test Suite (42 Tests)
-```bash
-python3 -m pytest -v
-```
+- `results/error_analysis_*.csv`
 
 ---
 
-## 🚀 6. Launching the Streamlit Application
+## 📐 9. Alignment Gap & 3-Tier Sample Adequacy Standard
 
-Run the Streamlit server from the project root:
+The system formalizes a strict 3-tier sample adequacy standard in `src/gap_analysis.py`:
+- **Tier A (Mathematical):** Computable whenever $n \ge 1$, but not reported if below descriptive minimum ($n < 2$).
+- **Tier B (Descriptive / Exploratory Only):** When $2 \le n < 15$ per subset, the nominal gap is calculated mathematically for debugging, but explicitly labeled **INCONCLUSIVE (Exploratory Only)** with clear sample counts and wide uncertainty warnings.
+- **Tier C (Conclusive Evidence):** Requires at least 15 pairs per subset. Confidence intervals are calculated using **Review-Level Cluster Bootstrap** (1,000 resamples), sampling review clusters with replacement to account for intra-review clustering. Significance is evaluated via review-level permutation testing.
+
+---
+
+## 🔤 10. Transliteration Normalization Comparison
+
+A controlled experiment evaluates the effect of Romanized Hindi transliteration normalization:
+- **Condition A:** Original text.
+- **Condition B:** Normalized text using `TransliterationNormalizer` (repeated character reduction, phonetic spelling canonicalization).
+- Evaluates whether normalization improves Macro-F1 or narrows the alignment gap without altering sentiment semantics or translating words to English.
+
+---
+
+## 🐞 11. Error Analysis Engine (`src/error_analysis.py`)
+
+Every prediction error is categorized into the 10 documented research error modes:
+1. Aspect extraction failure
+2. Opinion extraction failure
+3. Aspect-opinion binding failure
+4. Transliteration recognition failure
+5. Sentiment classification failure
+6. Negation handling failure
+7. Language-identification failure
+8. Annotation disagreement
+9. Implicit aspect or opinion
+10. Other / unresolved error
+
+Detailed error logs are exported to `results/error_analysis_<model_name>.csv`.
+
+---
+
+## 🚀 12. Launching the Streamlit Application
+
+Launch the 8-page academic research application:
 
 ```bash
 python3 -m streamlit run app.py
 ```
-
 Open your browser at `http://localhost:8501`.
 
----
-
-## 📖 7. User Guide: Page-by-Page Overview
-
-### Page 1: Home / Dashboard
-- Displays research title, central question, and core alignment gap formula.
-- Shows live dataset metrics (record counts, unique reviews, pair-type breakdown).
-- Summarizes available baseline and transformer model architectures.
-
-### Page 2: Single Review Analysis
-- Interactive input for arbitrary Hinglish customer reviews.
-- Provides sample test reviews via dropdown.
-- Automatically extracts aspect terms, opinion expressions, polarities, span languages, and pair types.
-- Provides fallback **Annotation-Assisted Inspection Mode** if heuristic extractors find low-confidence boundaries.
-
-### Page 3: Dataset Explorer & Validator
-- Upload custom ABSA CSV datasets.
-- Enforces strict validation checks:
-  1. Required columns presence.
-  2. Span containment in original text.
-  3. Valid categorical values (`Positive`, `Negative`, `Neutral`, `Hindi`, `English`, `same-language`, `cross-lingual`).
-  4. Character offset derivation.
-- Interactive filtering by Product Category and Sentiment Polarity.
-- Export cleaned/sanitized data via the download button.
-
-### Page 4: Model Comparison
-- Compares evaluated models on held-out test splits.
-- Reports Accuracy, Macro-F1, Same-Language F1, Cross-Lingual F1, and the Alignment Gap.
-- Transparently displays **Not evaluated** for uncomputed models to prevent fabricated results.
-
-### Page 5: Cross-Lingual Gap Analysis
-- Deep-dive diagnostics into the Cross-Lingual Aspect–Opinion Alignment Gap:
-  $$\text{Alignment Gap} = \text{Macro-F1}_{\text{same-language}} - \text{Macro-F1}_{\text{cross-lingual}}$$
-- Displays review-level clustered bootstrap confidence intervals when sample sizes are statistically sufficient ($N \ge 10$).
-- Subgroup performance breakdown by directional language combinations:
-  - English (Aspect) $\to$ Hindi (Opinion)
-  - English (Aspect) $\to$ English (Opinion)
-  - Hindi (Aspect) $\to$ Hindi (Opinion)
-  - Hindi (Aspect) $\to$ English (Opinion)
-- One-click CSV export of gap analysis records.
-
-### Page 6: Transliteration Normalization
-- Configurable normalization pipeline:
-  - **Repeated Character Reduction:** reduces flooding (e.g., *"acccchhaaa"* $\to$ *"accha"*).
-  - **Phonetic Canonicalization:** maps non-standard Romanized spelling variants conservatively (*"bohot"* $\to$ *"bahut"*, *"khraab"* $\to$ *"kharab"*).
-  - Preserves original reviews; never translates Hindi to English.
-- Corpus Impact Benchmark: tests Condition A (Original) vs. Condition B (Normalized) and measures performance $\Delta$.
-
-### Page 7: Experiments and Model Training
-- Execute full automated experiment suite or train individual models on custom seeds.
-- **Leakage Prevention:** Strictly splits partitions by `review_id` so that multiple aspects from the same review never leak across train and test sets.
-- Displays live epoch progress, confusion matrices, per-class metrics, diagnosed prediction errors, and saved experiment configuration JSONs.
-
-### Page 8: About / Methodology
-- Detailed academic documentation explaining the research questions, pipeline decoupling, 10 error categories, statistical validation, and ethical safeguards.
-- Direct link to `docs/LITERATURE_SURVEY.md`.
+### Page Guide:
+- **Page 1: Home / Dashboard:** Research objective, live dataset metrics, architecture roster.
+- **Page 2: Single Review Analysis:** Interactive ABSA extraction, relation binding, polarity prediction.
+- **Page 3: Dataset Explorer:** Validation report summary, inclusion/exclusion counts, category filters.
+- **Page 4: Model Comparison:** Comparison of completed experiments (uncomputed models show "Not evaluated").
+- **Page 5: Cross-Lingual Gap Analysis:** Gap breakdown, sample counts, unique review counts, conclusive status banners.
+- **Page 6: Transliteration Normalization:** Interactive tester and held-out normalization comparison.
+- **Page 7: Experiments & Training:** Live training and test evaluation runner.
+- **Page 8: About / Methodology:** Theoretical background and literature survey link.
 
 ---
 
-## 🔬 8. Hardware & Device Requirements
+## ✅ 13. Running Automated Tests
 
-The application automatically checks for hardware acceleration:
-1. **NVIDIA GPUs (CUDA):** Detected automatically via `torch.cuda.is_available()`.
-2. **Apple Silicon (MPS):** Detected automatically on macOS via `torch.backends.mps.is_available()`.
-3. **CPU:** Fallback default on all platforms.
-
-Transformer fine-tuning can be run on CPU or GPU; the UI uses compact batch sizes ($B=4$) and sequence lengths ($L=128$) to accommodate local workstation testing.
+Execute the complete test suite:
+```bash
+python3 -m pytest -v
+```
+All unit tests run offline using synthetic fixtures and do not require external downloads.
 
 ---
 
-## ⚖️ 9. Research Integrity Principles
+## ⚠️ 14. Known Limitations & Scientific Honesty
 
-1. **No Fabricated Metrics:** Uncomputed models strictly report "Not evaluated" with clear reasons.
-2. **No Data Leakage:** Stratified grouped splitting ensures reviews are kept isolated in either train, validation, or test partitions.
-3. **Conservative Normalization:** Transliteration normalizers never alter sentence semantics, delete negation tokens, or translate words into English.
-4. **Empirical Evidence:** The sample dataset `data/sample_reviews.csv` is explicitly marked as an illustrative benchmark for testing the pipeline and replicating the alignment gap methodology.
+1. **Pilot Sample Size:** The current dataset (N=61 pairs, 40 reviews) provides $N=10$ test records (2 same-language, 4 cross-lingual, 4 uncertain). As reported in `results/alignment_gap_results.csv`, this sample size is **statistically inconclusive** for definitive claims on the alignment gap.
+2. **Dominance of English Aspects:** Most e-commerce reviews feature English technical nouns (*"Camera"*, *"Processor"*) paired with Hindi adjectives, resulting in an asymmetry between English $\to$ Hindi and Hindi $\to$ English pairs.
+3. **Hardware Considerations:** Transformer fine-tuning automatically utilizes MPS (Apple Silicon) or CUDA; on CPU, epoch count should be kept small ($E=2$).
+
+---
+
+## 🔧 15. Troubleshooting
+
+- **Port in use:** If port 8501 is occupied, launch on a custom port: `streamlit run app.py --server.port 8502`.
+- **PyTorch MPS Device Allocation:** If MPS memory warnings occur, specify CPU fallback: `export PYTORCH_ENABLE_MPS_FALLBACK=1`.
+- **Package Conflicts:** Ensure `requirements.txt` is installed in a clean virtual environment.

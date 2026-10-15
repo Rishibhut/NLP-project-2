@@ -1,0 +1,160 @@
+{
+  "is_valid": true,
+  "total_rows": 61,
+  "valid_rows": 61,
+  "errors": [],
+  "warnings": [
+    "Row 3 (review_id 2): Annotated pair_type 'cross-lingual' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 11 (review_id 7): Annotated pair_type 'cross-lingual' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 25 (review_id 15): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 26 (review_id 15): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 33 (review_id 21): Annotated pair_type 'cross-lingual' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 34 (review_id 21): Annotated pair_type 'cross-lingual' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 39 (review_id 24): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (Mixed + Mixed).",
+    "Row 41 (review_id 26): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 42 (review_id 26): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 46 (review_id 30): Annotated pair_type 'cross-lingual' disagrees with derived pair_type 'Uncertain' (English + Mixed).",
+    "Row 47 (review_id 30): Annotated pair_type 'same-language' disagrees with derived pair_type 'Uncertain' (English + Mixed)."
+  ],
+  "stats": {
+    "total_rows": 61,
+    "valid_rows": 61,
+    "unique_reviews": 40,
+    "missing_value_counts": {
+      "review_id": 0,
+      "review_text": 0,
+      "aspect_term": 0,
+      "opinion_term": 0,
+      "sentiment": 0,
+      "aspect_language": 0,
+      "opinion_language": 0,
+      "pair_type": 0,
+      "product_category": 0
+    },
+    "duplicate_count": 0,
+    "span_mismatch_count": 0,
+    "pair_type_disagreements": [
+      {
+        "row_index": 3,
+        "review_id": "2",
+        "annotated_pair_type": "cross-lingual",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 11,
+        "review_id": "7",
+        "annotated_pair_type": "cross-lingual",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 25,
+        "review_id": "15",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 26,
+        "review_id": "15",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 33,
+        "review_id": "21",
+        "annotated_pair_type": "cross-lingual",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 34,
+        "review_id": "21",
+        "annotated_pair_type": "cross-lingual",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 39,
+        "review_id": "24",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "Mixed",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 41,
+        "review_id": "26",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 42,
+        "review_id": "26",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 46,
+        "review_id": "30",
+        "annotated_pair_type": "cross-lingual",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      },
+      {
+        "row_index": 47,
+        "review_id": "30",
+        "annotated_pair_type": "same-language",
+        "derived_pair_type": "Uncertain",
+        "aspect_language": "English",
+        "opinion_language": "Mixed"
+      }
+    ],
+    "review_text_inconsistencies": 0,
+    "category_inconsistencies": 0,
+    "sentiment_counts": {
+      "Positive": 35,
+      "Negative": 22,
+      "Neutral": 4
+    },
+    "pair_type_counts": {
+      "cross-lingual": 34,
+      "same-language": 16,
+      "Uncertain": 11
+    },
+    "aspect_lang_counts": {
+      "English": 58,
+      "Hindi": 2,
+      "Mixed": 1
+    },
+    "opinion_lang_counts": {
+      "Hindi": 36,
+      "English": 14,
+      "Mixed": 11
+    },
+    "product_categories": {
+      "Smartphones": 15,
+      "Audio": 9,
+      "Electronics": 9,
+      "Footwear": 7,
+      "Laptops": 6,
+      "Clothing": 4,
+      "Customer Service": 4,
+      "Wearables": 4,
+      "Accessories": 3
+    }
+  }
+}

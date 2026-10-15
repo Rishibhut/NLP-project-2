@@ -1,0 +1,11 @@
+review_id,review_text,aspect_term,opinion_term,sentiment,aspect_language,opinion_language,pair_type,product_category,aspect_start_char,aspect_end_char,opinion_start_char,opinion_end_char,annotated_pair_type,derived_pair_type,pair_type_disagreement,predicted_sentiment
+8,"Is price range me performance lajawab hai, value for money deal!",performance,lajawab hai,Positive,English,Hindi,cross-lingual,Electronics,18,29,30,41,cross-lingual,cross-lingual,False,Positive
+8,"Is price range me performance lajawab hai, value for money deal!",deal,value for money,Positive,English,English,same-language,Electronics,59,63,43,58,same-language,same-language,False,Positive
+15,Watch ka strap quality ordinary hai aur battery backup average hai.,strap quality,ordinary hai,Neutral,English,Mixed,Uncertain,Wearables,9,22,23,35,same-language,Uncertain,True,Positive
+15,Watch ka strap quality ordinary hai aur battery backup average hai.,battery backup,average hai,Neutral,English,Mixed,Uncertain,Wearables,40,54,55,66,same-language,Uncertain,True,Positive
+19,"Mic clarity bahut ghatiya hai, online classes ke liye mat lo.",Mic clarity,bahut ghatiya hai,Negative,English,Hindi,cross-lingual,Audio,0,11,12,29,cross-lingual,cross-lingual,False,Negative
+21,Screen resolution bohot crisp hai aur colors vibrant lagte hain.,Screen resolution,bohot crisp hai,Positive,English,Mixed,Uncertain,Smartphones,0,17,18,33,cross-lingual,Uncertain,True,Negative
+21,Screen resolution bohot crisp hai aur colors vibrant lagte hain.,colors,vibrant lagte hain,Positive,English,Mixed,Uncertain,Smartphones,38,44,45,63,cross-lingual,Uncertain,True,Negative
+29,"Cooling system bilkul kaam nahi karta, heavy gaming par phone garam hota hai.",Cooling system,bilkul kaam nahi karta,Negative,English,Hindi,cross-lingual,Smartphones,0,14,15,37,cross-lingual,cross-lingual,False,Negative
+39,Setup process was super simple and manual clear tha.,Setup process,was super simple,Positive,English,English,same-language,Electronics,0,13,14,30,same-language,same-language,False,Negative
+39,Setup process was super simple and manual clear tha.,manual,clear tha,Positive,English,Hindi,cross-lingual,Electronics,35,41,42,51,cross-lingual,cross-lingual,False,Negative

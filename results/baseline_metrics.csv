@@ -1,4 +1,5 @@
-Experiment_ID,Model,Accuracy,Macro_Precision,Macro_Recall,Macro_F1,Macro_F1_CI_95,Test_Samples
-EXP_20261012_235622_lexicon,Lexicon Baseline,0.9,0.8889,0.9444,0.903,"[0.5079, 1.0]",10
-EXP_20261012_235622_logistic_regression,TF-IDF + Logistic Regression,0.5,0.3056,0.3889,0.3333,"[0.1333, 0.5359]",10
-EXP_20261012_235623_linear_svm,TF-IDF + Linear SVM,0.5,0.3056,0.3889,0.3333,"[0.1333, 0.5359]",10
+Experiment_ID,Model,Accuracy,Macro_Precision,Macro_Recall,Macro_F1,Macro_F1_CI_95,Test_Samples,Status
+EXP_20261013_010001_lexicon,Lexicon Baseline,0.9,0.8889,0.9444,0.903,"[0.5079, 1.0]",10,Evaluated on Held-Out Split
+EXP_20261013_010002_logistic_regression,TF-IDF + Logistic Regression,0.5,0.3056,0.3889,0.3333,"[0.1333, 0.5359]",10,Evaluated on Held-Out Split
+EXP_20261013_010002_linear_svm,TF-IDF + Linear SVM,0.5,0.3056,0.3889,0.3333,"[0.1333, 0.5359]",10,Evaluated on Held-Out Split
+EXP_20261013_010003_muril,MuRIL,0.4,0.2778,0.4444,0.3,"[0.0606, 0.4889]",10,Evaluated on Held-Out Split
